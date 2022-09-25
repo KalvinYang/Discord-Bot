@@ -17,7 +17,7 @@ import random
 #This import is currently used in stalling the deleting of messages from the bot.
 import asyncio
 
-#Itents allow for the usage of information within their classes.
+#Intents allow for the usage of information within their classes.
 Intents = discord.Intents.default().all()
 Intents.members = True
 Intents.presences = True
@@ -26,22 +26,14 @@ Intents.guilds = True
 #Bot prefix setup and set the bot intentions to those setup above.
 bot = commands.Bot(intents=Intents, command_prefix='&')
 
-#Removal of help command, this is so that a custom help command can be built.
-bot.remove_command("help")
-
-#List of commands, currently out of date, however, by making the command list like this, it allows for an easy read of all the commands that are currently implemented into the bot.
-command_desc = {
-    "&help": " = &h, lists all commands.",
-    "&talk": " = &t, connect to a random person and talk.",
-    "&letters": " = &l, checks all new letters in mail.",
-    "&save":
-    " = &s, save any current letter being viewed if not already saved.",
-    "&inventory": " = &i, view all saved letters."
-}
-the_commands = list(command_desc.keys())
-
 #This variable has to do with the bot's private token, allowing connection to specific bot within anyone else connecting to the specific bot.
 my_secret = os.environ['token']
+
+#Starts up extensions i.e. our commands
+startup_extensions = ["private", "public"]
+
+#Removal of help command, this is so that a custom help command can be built.
+bot.remove_command("help")
 
 #List of messages, currently from the first build, thinking of perhaps using a database for commands and messages, but will currently stick to this to allow code to continue to work for now.
 messages = [
@@ -61,65 +53,6 @@ async def on_ready():
     print('{0.user} is ready.'.format(bot))
 
 
-#Command help, sending the list of current commands to the author of the command. It builds the paragraph manually from the parts in the command list and then mentions the author to check DMs. After of which it deletes the original command.
-@bot.command(pass_context=True)
-async def help(ctx):
-    command_send = "Commands Include:\n"
-    for i in the_commands:
-        command_send = command_send + i + command_desc[i] + '\n'
-    await ctx.send('{0} Check Your DMs'.format(ctx.author.mention))
-    await ctx.author.send(command_send)
-    await ctx.message.delete()
-
-
-#Command purge, deleting the number of messages dictated in field 'num'. 'num' must also be convertible to type int or else the command will not work. Thinking of working on changing this fact, by adding keywords like 'all' or 'my' with a third redundant field that only works when the other keywords are in effect.
-@bot.command(pass_context=True)
-async def purge(ctx, num):
-    num = int(num)
-    await ctx.channel.purge(limit=num)
-
-
-#Command allmembers, originally called 'members' a piece of code taken and used to debug as to why the bot could only view itself when searching in guilds. It lists all users in every server that the bot is within, however list is only available within console.
-@bot.command(pass_context=True)
-async def allmembers(ctx):
-    for guild in bot.guilds:
-        for member in guild.members:
-            print(guild, member)
-
-
-#Command members, a subset command of allmembers made into its' own that sends a list of all users in a server to the command caller.
-@bot.command(pass_context=True)
-async def members(ctx):
-    the_guild = ctx.guild
-    guild_members = ''
-    count = 1
-    for member in the_guild.members:
-        count = count + 1
-        guild_members = guild_members + str(count) + ': ' + member.name + '\n'
-    await ctx.author.send(
-        'List of guild members in {0}: \n'.format(the_guild) + guild_members)
-
-
-#Command talk, by calling command and an name into the 'user' field it searches the server to find if such a person exists, if they do it sends a randomized message to them. Although basic, it is a legacy command from the original project. Perhaps it could be expanded on.
-@bot.command(pass_context=True)
-async def talk(ctx, user):
-    all_members = ctx.guild.members
-    print('user: ' + user)
-    for member in all_members:
-        print('member name: ' + member.name)
-        if member.name == user:
-            if member.bot == True:
-                await ctx.send("This is a bot, cannot send message.")
-                return
-            new_message = random.choice(messages)
-            await member.send(ctx.author.name + ' to ' + member.name + ': ' +
-                              new_message)
-            await ctx.author.send('You to ' + member.name + ': ' + new_message)
-            return
-    await ctx.send("This person does not exist.")
-    return
-
-
 #Event on_message, currently only has basic functionality to delete it's own messages to reduce clutter. line 'await bot.process_commands(message_1)' allows for commands to work despite the inclusion of this event. Otherwise the other commands would be ignored due to a coroutine.
 @bot.event
 async def on_message(message_1):
@@ -134,14 +67,12 @@ async def on_message(message_1):
     return
 
 
-#Runs the bot
+if __name__ == "__main__":
+    for extension in startup_extensions:
+        bot.load_extension(extension)
 bot.run(os.getenv('token'))
 
-
-
-
-
-
+#Runs the bot
 
 #Below is legacy code, remanants from the original project used to build portions of the new code. Left in just in case there is inspiration to still be taken from it.
 
