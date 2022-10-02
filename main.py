@@ -40,7 +40,6 @@ messages = [
     'Hello there!', "Hey what's up?", 'How are you doing?', 'Nice to meet you!'
 ]
 
-
 #When the bot connects it will print that statement to allow dev to know of successful connection.
 @bot.event
 async def on_connect():

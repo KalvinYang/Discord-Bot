@@ -1,8 +1,8 @@
 #Discord imports allow for easy access to connection to discord and making commands.
 import discord
 from discord.ext import commands
-
 import random
+import asyncio
 
 #Intents allow for the usage of information within their classes.
 Intents = discord.Intents.default().all()
@@ -33,6 +33,7 @@ the_commands = list(command_desc.keys())
 #Removal of help command, this is so that a custom help command can be built.
 bot.remove_command("help")
 
+
 class Public(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -46,16 +47,6 @@ class Public(commands.Cog):
         await ctx.send('{0} Check Your DMs'.format(ctx.author.mention))
         await ctx.author.send(command_send)
         await ctx.message.delete()
-
-    #Command purge, deleting the number of messages dictated in field 'num'. 'num' must also be convertible to type int or else the command will not work. Thinking of working on changing this fact, by adding keywords like 'all' or 'my' with a third redundant field that only works when the other keywords are in effect.
-    @bot.command(pass_context=True)
-    async def purge(self, ctx, num):
-        num = int(num)
-        if num > 50:
-            await ctx.send(
-                'Too many messages to delete, please keep it under 50.')
-            return
-        await ctx.channel.purge(limit=num)
 
     #Command talk, by calling command and an name into the 'user' field it searches the server to find if such a person exists, if they do it sends a randomized message to them. Although basic, it is a legacy command from the original project. Perhaps it could be expanded on.
     @bot.command(pass_context=True)
@@ -77,11 +68,30 @@ class Public(commands.Cog):
         await ctx.send("This person does not exist.")
         return
 
+        #Command Disconnect, Makes the Roomz Bot Leave voice channel. User has to be in the same channel.
+    @bot.command(pass_context=True)
+    async def disconnect(self, ctx):
+        #joins the discord vc
+        channel = ctx.guild.voice_client
+        await channel.disconnect()
+
+    #Command Join, Allows the Roomz Bot to join a voice channel from where the user is already in when the command is called
     @bot.command(pass_context=True)
     async def join(self, ctx):
         #joins the discord vc
-        channel = ctx.message.author.voice.channel
-        await channel.connect()
+        channel = ctx.author.voice.channel
+        connected = ctx.guild.voice_client
+        try:
+            await channel.connect()
+        except discord.ClientException:
+            voice_client = discord.utils.get(bot.voice_clients, guild=ctx.guild)
+            print("     channel: {0}".format(channel))
+            print("voice_client: {0}".format(voice_client))
+            if channel == connected:
+                ctx.send('I am already here!')
+            else:
+                await connected.disconnect()
+                await channel.connect()
 
 
 def setup(bot):
