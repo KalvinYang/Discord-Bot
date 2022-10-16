@@ -21,10 +21,10 @@ class Private(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    #private
+    #Command allmembers, prints all members across all server that the bot is present in.
     @bot.command(pass_context=True)
     async def allmembers(self, ctx):
-        for guild in bot.guilds:
+        for guild in self.bot.guilds:
             for member in guild.members:
                 print(guild, member)
 
@@ -41,47 +41,52 @@ class Private(commands.Cog):
         await ctx.author.send(
             'List of guild members in {0}: \n'.format(the_guild) +
             guild_members)
-      
-    #work in progress, don't tinker with this please.
+
+    #Command clearbot, clears all messages from the bot within dms.
     @bot.command(pass_context=True)
     async def clearbot(self, ctx):
         dm = ctx.author.dm_channel
-        await ctx.author.send("Initiating deletion of dms.")
-        bot_name = "Roomz Bot#9241"
+        bot_name = self.bot.user
         if dm != None:
-            await ctx.author.send("Getting there.")
             async for message in dm.history(limit=None):
-                print('author: {0}'.format(
-                    message.author))
-                print('   bot: {0} \n'.format(bot_name))
-                print('message: {0}\n'.format(message))
-                holder = message
                 if message.author == bot_name:
-                    print('message deleted.')
-                    await holder.delete()
+                    await message.delete()
             await ctx.author.send("DMs deleted.")
 
     #Command clear, deletes all messages from a channel in one go.
     @bot.command(pass_context=True)
     async def clear(self, ctx):
-        await ctx.author.send(
-            "Deleting all messages, beware any messages from here on will be deleted."
-        )
         count = 0
         async for message in ctx.channel.history(limit=None):
             count += 1
         await ctx.channel.purge(limit=count)
         await ctx.send("All channel messages have been deleted.")
 
-    #Command purge, deleting the number of messages dictated in field 'num'. 'num' must also be convertible to type int or else the command will not work. Thinking of working on changing this fact, by adding keywords like 'all' or 'my' with a third redundant field that only works when the other keywords are in effect.
+    #Command purge, deleting the number of messages dictated in field 'num'. 'All' used in command clear instead, 'my' replaced with targetted deletion. Limit of purge is 50, with the bot only being able to purge messages within the channel.
     @bot.command(pass_context=True)
-    async def purge(self, ctx, num):
-        num = int(num)
+    async def purge(self, ctx, num=0, id=""):
+        counter = 0
         if num > 50:
             await ctx.send(
                 'Too many messages to delete, please keep it under 50.')
             return
-        await ctx.channel.purge(limit=num)
+        elif num <= 0:
+            await ctx.send('Choose a number greater than 0.')
+            return
+        if id == "":
+            await ctx.channel.purge(limit=num)
+        else:
+            async for message in ctx.channel.history(limit=None):
+                print('author: {0}'.format(str(message.author)))
+                print('wanted: {0}'.format(id))
+                if str(
+                        message.author
+                ) == id or message.author.name == id or message.author.mention == id:
+                    counter += 1
+                    await message.delete()
+                    if counter == num:
+                        return
+            await ctx.channel.send("Messages deleted.")
 
 
 def setup(bot):

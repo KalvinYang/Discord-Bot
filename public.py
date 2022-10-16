@@ -46,52 +46,55 @@ class Public(commands.Cog):
             command_send = command_send + i + command_desc[i] + '\n'
         await ctx.send('{0} Check Your DMs'.format(ctx.author.mention))
         await ctx.author.send(command_send)
-        await ctx.message.delete()
+        try:
+            await ctx.message.delete()
+        except discord.Forbidden:
+            return
 
     #Command talk, by calling command and an name into the 'user' field it searches the server to find if such a person exists, if they do it sends a randomized message to them. Although basic, it is a legacy command from the original project. Perhaps it could be expanded on.
+    #Edit: Now only sends randomized messages when 'msg' field is empty. Otherwise will send intended message to 'user' so long as they are within the server.
     @bot.command(pass_context=True)
-    async def talk(self, ctx, user):
+    async def talk(self, ctx, user, msg=""):
         all_members = ctx.guild.members
         print('user: ' + user)
+        if user == ctx.author.name or user == ctx.author or user == ctx.author.mention:
+            await ctx.send("Why are you sending a message to yourself?")
+            return
         for member in all_members:
             print('member name: ' + member.name)
-            if member.name == user:
+            if member.name == user or member == user or member.mention == user:
                 if member.bot == True:
                     await ctx.send("This is a bot, cannot send message.")
                     return
-                new_message = random.choice(messages)
+                if msg == "":
+                    new_message = random.choice(messages)
+                else:
+                    new_message = msg
                 await member.send(ctx.author.name + ' to ' + member.name +
                                   ': ' + new_message)
                 await ctx.author.send('You to ' + member.name + ': ' +
                                       new_message)
                 return
-        await ctx.send("This person does not exist.")
+        await ctx.send("This person does not exist in this server.")
         return
-
-        #Command Disconnect, Makes the Roomz Bot Leave voice channel. User has to be in the same channel.
+    #Command randomnum, chooses a random number from 0 to 10 by default. Chooses random number between 0 and indicated otherwise.
     @bot.command(pass_context=True)
-    async def disconnect(self, ctx):
-        #joins the discord vc
-        channel = ctx.guild.voice_client
-        await channel.disconnect()
+    async def randomnum(self, ctx, num=10):
+        somenumber = random.randrange(num)
+        await ctx.send('Number: {0}'.format(somenumber))
 
-    #Command Join, Allows the Roomz Bot to join a voice channel from where the user is already in when the command is called
+    #Command saynum, sends separate messages counting from 1 to indicated number, so long as it is within 50 to minimize clutter.
     @bot.command(pass_context=True)
-    async def join(self, ctx):
-        #joins the discord vc
-        channel = ctx.author.voice.channel
-        connected = ctx.guild.voice_client
-        try:
-            await channel.connect()
-        except discord.ClientException:
-            voice_client = discord.utils.get(bot.voice_clients, guild=ctx.guild)
-            print("     channel: {0}".format(channel))
-            print("voice_client: {0}".format(voice_client))
-            if channel == connected:
-                ctx.send('I am already here!')
-            else:
-                await connected.disconnect()
-                await channel.connect()
+    async def saynum(self, ctx, num=0):
+        if num <= 0:
+            await ctx.channel.send('Cannot count to that number.')
+            return
+        elif num > 50:
+            await ctx.channel.send('Max count limit is 50.')
+            return
+        for number in range(num):
+            await asyncio.sleep(0.75)
+            await ctx.channel.send('{0}'.format(number + 1))
 
 
 def setup(bot):

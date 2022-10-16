@@ -7,9 +7,14 @@
 #Base import needed to connect bot.
 import os
 
+os.system("pip install PyNaCl")
+
 #Discord imports allow for easy access to connection to discord and making commands.
 import discord
 from discord.ext import commands
+from discord.ext.commands import CommandNotFound
+from discord.ext.commands import CommandInvokeError
+from discord.ext.commands import BadArgument
 
 #Random import currently used for randomly choosing a message to send to people. Later perhaps used to choose a song or in a game that can be attached to the project.
 import random
@@ -30,7 +35,7 @@ bot = commands.Bot(intents=Intents, command_prefix='&')
 my_secret = os.environ['token']
 
 #Starts up extensions i.e. our commands
-startup_extensions = ["private", "public"]
+startup_extensions = ["private", "public", "music"]
 
 #Removal of help command, this is so that a custom help command can be built.
 bot.remove_command("help")
@@ -39,6 +44,7 @@ bot.remove_command("help")
 messages = [
     'Hello there!', "Hey what's up?", 'How are you doing?', 'Nice to meet you!'
 ]
+
 
 #When the bot connects it will print that statement to allow dev to know of successful connection.
 @bot.event
@@ -50,6 +56,31 @@ async def on_connect():
 @bot.event
 async def on_ready():
     print('{0.user} is ready.'.format(bot))
+
+
+#Still testing these
+#----------------------------------------------------
+@bot.event
+async def on_member_join(member):
+    member.send('Welcome to {0}, glad to have you and have a nice stay!'.format(member.guild))
+
+@bot.event
+async def on_invite_create(ctx):
+    ctx.guild.owner.send('Someone has created an invite for channel: {0}'.format(ctx.channel))
+#----------------------------------------------------
+
+#This is whenever there are command errors, these will be checked and outputted as needed.
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, CommandNotFound):
+        await ctx.channel.send('That command does not exist.')
+        return
+    elif isinstance(error, CommandInvokeError):
+        await ctx.channel.send('Cannot do that here.')
+        return
+    elif isinstance(error, BadArgument):
+        await ctx.channel.send('Argument not valid.')
+        return
 
 
 #Event on_message, currently only has basic functionality to delete it's own messages to reduce clutter. line 'await bot.process_commands(message_1)' allows for commands to work despite the inclusion of this event. Otherwise the other commands would be ignored due to a coroutine.
