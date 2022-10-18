@@ -77,6 +77,7 @@ class Public(commands.Cog):
                 return
         await ctx.send("This person does not exist in this server.")
         return
+
     #Command randomnum, chooses a random number from 0 to 10 by default. Chooses random number between 0 and indicated otherwise.
     @bot.command(pass_context=True)
     async def randomnum(self, ctx, num=10):
@@ -95,6 +96,30 @@ class Public(commands.Cog):
         for number in range(num):
             await asyncio.sleep(0.75)
             await ctx.channel.send('{0}'.format(number + 1))
+
+    #Command guessnum, guess a number between 0 and 10, randomizes number and tells you if you got it right. Auto allows for auto guessing until the number is achieved and returns the amount of guesses needed.
+    @bot.command(pass_context=True)
+    async def guessnum(self, ctx, num=-1, auto='no'):
+        if num < 0 or num > 10:
+            await ctx.channel.send('Not a valid guess.')
+            return
+        if auto == 'yes' or auto == 'y' or auto == 'Y' or auto == 'YES' or auto == 'Yes':
+            counter = 0
+            while True:
+                somenumber = random.randrange(11)
+                counter += 1
+                if somenumber == num:
+                    await ctx.send(
+                        'You took {0} guess(es) to get it right.'.format(
+                            counter))
+                    return
+        somenumber = random.randrange(11)
+        print('guess: {0}'.format(num))
+        print('value: {0}'.format(somenumber))
+        if somenumber == num:
+            await ctx.channel.send('You guessed right!')
+        else:
+            await ctx.channel.send('WRONG.')
 
 
 def setup(bot):

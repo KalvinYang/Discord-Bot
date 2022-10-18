@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from youtube_dl import YoutubeDL
 
 #Intents allow for the usage of information within their classes.
 Intents = discord.Intents.default().all()
@@ -18,6 +19,24 @@ class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+        self.is_playing = False
+        self.is_paused = False
+
+        self.music_queue = []
+
+        self.YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': True}
+        self.vc = None
+
+#Begin work on play function
+#---------------------------------------
+
+    @bot.command(pass_context=True)
+    async def play(self, ctx, *args):
+        return
+
+
+#---------------------------------------
+
     @bot.command(pass_context=True)
     async def disconnect(self, ctx):
         #joins the discord vc
@@ -33,12 +52,11 @@ class Music(commands.Cog):
         try:
             await channel.connect()
         except discord.ClientException:
-            voice_client = discord.utils.get(self.bot.voice_clients,
-                                             guild=ctx.guild)
-            print("     channel: {0}".format(channel))
-            print("voice_client: {0}".format(voice_client))
-            if channel == connected:
-                ctx.send('I am already here!')
+            voice_client = discord.utils.get(
+                self.bot.voice_clients, guild=ctx.guild
+            )  #gets bot channel object, need the channel by using .channel
+            if channel == voice_client.channel:
+                await ctx.send('I am already here!')
             else:
                 await connected.disconnect()
                 await channel.connect()

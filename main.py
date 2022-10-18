@@ -35,7 +35,7 @@ bot = commands.Bot(intents=Intents, command_prefix='&')
 my_secret = os.environ['token']
 
 #Starts up extensions i.e. our commands
-startup_extensions = ["private", "public", "music"]
+startup_extensions = ["private", "public", "music", "mathy"]
 
 #Removal of help command, this is so that a custom help command can be built.
 bot.remove_command("help")
@@ -70,17 +70,17 @@ async def on_invite_create(ctx):
 #----------------------------------------------------
 
 #This is whenever there are command errors, these will be checked and outputted as needed.
-@bot.event
-async def on_command_error(ctx, error):
-    if isinstance(error, CommandNotFound):
-        await ctx.channel.send('That command does not exist.')
-        return
-    elif isinstance(error, CommandInvokeError):
-        await ctx.channel.send('Cannot do that here.')
-        return
-    elif isinstance(error, BadArgument):
-        await ctx.channel.send('Argument not valid.')
-        return
+#@bot.event
+#async def on_command_error(ctx, error):
+#    if isinstance(error, CommandNotFound):
+#        await ctx.channel.send('That command does not exist.')
+#        return
+#    elif isinstance(error, CommandInvokeError):
+#        await ctx.channel.send('Cannot do that here.')
+#        return
+#    elif isinstance(error, BadArgument):
+#        await ctx.channel.send('Argument not valid.')
+#        return
 
 
 #Event on_message, currently only has basic functionality to delete it's own messages to reduce clutter. line 'await bot.process_commands(message_1)' allows for commands to work despite the inclusion of this event. Otherwise the other commands would be ignored due to a coroutine.

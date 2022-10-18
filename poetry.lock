@@ -173,10 +173,18 @@ python-versions = ">=3.6"
 idna = ">=2.0"
 multidict = ">=4.0"
 
+[[package]]
+name = "youtube-dl"
+version = "2021.12.17"
+description = "YouTube video downloader"
+category = "main"
+optional = false
+python-versions = "*"
+
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "3f2a47dfaf1f9e901eb9b528e1ace29ca547aebbe8dfe0a9de46cdab58cdc06a"
+content-hash = "227d1152b7a94bcc96536f97b457184f1b6432b8e73088a0d429f6818ca6f16c"
 
 [metadata.files]
 aiohttp = []
@@ -195,3 +203,4 @@ six = []
 typing-extensions = []
 urllib3 = []
 yarl = []
+youtube-dl = []
