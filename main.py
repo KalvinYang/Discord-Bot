@@ -7,7 +7,7 @@
 #Base import needed to connect bot.
 import os
 
-os.system("pip install PyNaCl")
+# os.system("pip install PyNaCl")
 
 #Discord imports allow for easy access to connection to discord and making commands.
 import discord

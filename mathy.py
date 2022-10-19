@@ -2,6 +2,8 @@
 import discord
 from discord.ext import commands
 
+import re
+
 #Intents allow for the usage of information within their classes.
 Intents = discord.Intents.default().all()
 Intents.members = True
@@ -72,22 +74,79 @@ class Mathy(commands.Cog):
         num = int(round(num))
         await ctx.send('Product: {0}'.format(num))
 
+    
     @bot.command(pass_context=True)
     async def divide(self, ctx, num=0.0, *args):
         if len(args) == 0:
             await ctx.send("You didn't input anything to divide.")
             return
         for number in args:
-          try:
-                num = num/float(number)
+            try:
+                num = num / float(number)
                 print(num)
-          except ValueError:
+            except ValueError:
                 await ctx.send(
                     'There is something that is not a number in here.')
-                return  
+                return
 
         num = int(round(num))
         await ctx.send('Quotient: {0}'.format(num))
+
+        
+    # find rational roots for a polynomial with integral coefficients
+    @bot.command(pass_context=True)
+    async def find_roots(self, ctx, *args):
+        polynomial = ''.join(args)
+        tokens = polynomial.replace('-', '+-').split('+')
+        polynomial = []
+
+        def place_coef(polynomial, coef, exp):
+            # extend the coefficients array if needed
+            if len(polynomial) <= exp:
+                # polynomial.extend([0 for i in range(exp - len(polynomial) + 1)])
+                polynomial.extend([0]  * (exp - len(polynomial) + 1))
+            polynomial[exp] += coef
+            return polynomial
+        
+        for tok in tokens:
+            coef = 0
+            exp = 0
+            
+            # expecting token looks like '{coef}{variable_letter}{exp}'
+            tok_split_by_alpha = re.split(r'[a-z]', tok.lower())
+
+            # constant only
+            if len(tok_split_by_alpha) == 1:
+                coef = int(tok_split_by_alpha[0])
+                exp = 0
+                polynomial = place_coef(polynomial, coef, exp)
+                continue
+
+            # assume format of {coef}x{exp}
+            [coef_str, exp_str] = tok_split_by_alpha[:2]
+            if coef_str.startswith('-'):
+                # for '-x{exp}'
+                coef = -1
+                if len(coef_str) > 1:
+                    # for '{coef}x{exp}' with coef < 0
+                    coef *= int(coef_str[1:])
+            elif coef_str == '':
+                # for 'x{exp}'
+                coef = 1
+            else:
+                # default case (coef > 0)
+                coef = int(coef_str)
+            # get exponent; covers '{coef}x' and '{coef}x{exp}'
+            exp = 1 if exp_str == '' else int(exp_str)
+            polynomial = place_coef(polynomial, coef, exp)
+            
+        # TODO: get rational root candidates, horner's method, output rational roots
+
+        await ctx.send("This feature is not yet finished, "
+                       "but here's the coefficients array: "
+                       + str(polynomial))
+        return
+
 
 def setup(bot):
     bot.add_cog(Mathy(bot))
