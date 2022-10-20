@@ -10,6 +10,7 @@ discord = "^1.7.3"
 names = "^0.3.0"
 botocore = "^1.27.82"
 youtube_dl = "^2021.12.17"
+Fraction = "^2.2.0"
 
 [tool.poetry.dev-dependencies]
 

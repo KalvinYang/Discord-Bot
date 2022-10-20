@@ -3,6 +3,8 @@ import discord
 from discord.ext import commands
 
 import re
+import itertools
+from fractions import Fraction
 
 #Intents allow for the usage of information within their classes.
 Intents = discord.Intents.default().all()
@@ -142,9 +144,66 @@ class Mathy(commands.Cog):
             
         # TODO: get rational root candidates, horner's method, output rational roots
 
-        await ctx.send("This feature is not yet finished, "
-                       "but here's the coefficients array: "
-                       + str(polynomial))
+        # evaluate polynomial at x using synthetic division
+        def evaluate(polynomial, x):
+            acc = Fraction(polynomial[-1]) # accumulator
+            result = [acc]
+            assert len(polynomial) > 0, "cannot evaluate empty expression"
+            if len(polynomial) < 2:
+                return acc, result
+            for i in polynomial[-2::-1]:
+                acc = (acc * x) + Fraction(i)
+                result.append(acc)
+            return acc, result[-2::-1]
+
+        # negative values count!
+        def factorize(x):
+            if x < Fraction(0):
+                x *= Fraction(-1, 1)
+            n_positive_factors = [i for i in range(1, x.numerator + 1) if x.numerator % i == 0]
+            n_negative_factors = list(map(lambda n: -n, n_positive_factors))
+            d_positive_factors = [i for i in range(1, x.denominator + 1) if x.denominator % i == 0]
+            d_negative_factors = list(map(lambda n: -n, d_positive_factors))
+            return [Fraction(a, b)
+                    for a, b in itertools.product(
+                        n_positive_factors + n_negative_factors,
+                        d_positive_factors + d_negative_factors)]
+            
+        roots = []
+
+        # if 0 is a root, eliminate it now
+        while polynomial[0] == 0:
+            polynomial = polynomial[1:]
+            roots.append(Fraction(0))
+
+        while len(polynomial) > 1:
+            ps = factorize(polynomial[0])
+            qs = factorize(polynomial[-1])
+            found_a_root = False
+            candidates = []
+            # Fractions are not hashable, so we can't use set() :(
+            for p in ps:
+                for q in qs:
+                    candidate = Fraction(p, q)
+                    if candidate not in candidates:
+                        candidates.append(candidate)
+            for candidate in candidates:
+                remainder, quotient = evaluate(polynomial, candidate)
+                if remainder == 0:
+                    found_a_root = True
+                    polynomial = quotient
+                    roots.append(candidate)
+                    break
+            if not found_a_root:
+                break
+
+        # at this point polynomial may look something like this:
+        # [1, 0, 1]
+        # the index indicates the power
+        # value in list would be the coefficients
+        # only print the remaining polynomial if len(polynomial) > 2
+        
+        await ctx.send(f"Rational roots for polynomial: {roots}")
         return
 
 
