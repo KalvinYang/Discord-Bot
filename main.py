@@ -7,8 +7,6 @@
 #Base import needed to connect bot.
 import os
 
-# os.system("pip install PyNaCl")
-
 #Discord imports allow for easy access to connection to discord and making commands.
 import discord
 from discord.ext import commands
@@ -73,13 +71,13 @@ async def on_invite_create(ctx):
 #@bot.event
 #async def on_command_error(ctx, error):
 #    if isinstance(error, CommandNotFound):
-#        await ctx.channel.send('That command does not exist.')
+#        await ctx.channel.send('Error: CommandNotFound')
 #        return
 #    elif isinstance(error, CommandInvokeError):
-#        await ctx.channel.send('Cannot do that here.')
+#        await ctx.channel.send('Error: CommandInvokeError')
 #        return
 #    elif isinstance(error, BadArgument):
-#        await ctx.channel.send('Argument not valid.')
+#        await ctx.channel.send('Error: BadArgument')
 #        return
 
 

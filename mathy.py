@@ -76,7 +76,6 @@ class Mathy(commands.Cog):
         num = int(round(num))
         await ctx.send('Product: {0}'.format(num))
 
-    
     @bot.command(pass_context=True)
     async def divide(self, ctx, num=0.0, *args):
         if len(args) == 0:
@@ -94,26 +93,26 @@ class Mathy(commands.Cog):
         num = int(round(num))
         await ctx.send('Quotient: {0}'.format(num))
 
-        
     # find rational roots for a polynomial with integral coefficients
     @bot.command(pass_context=True)
     async def find_roots(self, ctx, *args):
         polynomial = ''.join(args)
-        tokens = polynomial.replace('-', '+-').split('+')
+        tokens = list(filter(
+            lambda s: s,
+            polynomial.replace('-', '+-').split('+')))
         polynomial = []
 
         def place_coef(polynomial, coef, exp):
             # extend the coefficients array if needed
             if len(polynomial) <= exp:
-                # polynomial.extend([0 for i in range(exp - len(polynomial) + 1)])
-                polynomial.extend([0]  * (exp - len(polynomial) + 1))
+                polynomial.extend([0] * (exp - len(polynomial) + 1))
             polynomial[exp] += coef
             return polynomial
-        
+
         for tok in tokens:
             coef = 0
             exp = 0
-            
+
             # expecting token looks like '{coef}{variable_letter}{exp}'
             tok_split_by_alpha = re.split(r'[a-z]', tok.lower())
 
@@ -141,12 +140,10 @@ class Mathy(commands.Cog):
             # get exponent; covers '{coef}x' and '{coef}x{exp}'
             exp = 1 if exp_str == '' else int(exp_str)
             polynomial = place_coef(polynomial, coef, exp)
-            
-        # TODO: get rational root candidates, horner's method, output rational roots
 
         # evaluate polynomial at x using synthetic division
         def evaluate(polynomial, x):
-            acc = Fraction(polynomial[-1]) # accumulator
+            acc = Fraction(polynomial[-1])  # accumulator
             result = [acc]
             assert len(polynomial) > 0, "cannot evaluate empty expression"
             if len(polynomial) < 2:
@@ -160,15 +157,22 @@ class Mathy(commands.Cog):
         def factorize(x):
             if x < Fraction(0):
                 x *= Fraction(-1, 1)
-            n_positive_factors = [i for i in range(1, x.numerator + 1) if x.numerator % i == 0]
+            n_positive_factors = [
+                i for i in range(1, x.numerator + 1) if x.numerator % i == 0
+            ]
             n_negative_factors = list(map(lambda n: -n, n_positive_factors))
-            d_positive_factors = [i for i in range(1, x.denominator + 1) if x.denominator % i == 0]
+            d_positive_factors = [
+                i for i in range(1, x.denominator + 1)
+                if x.denominator % i == 0
+            ]
             d_negative_factors = list(map(lambda n: -n, d_positive_factors))
-            return [Fraction(a, b)
-                    for a, b in itertools.product(
-                        n_positive_factors + n_negative_factors,
-                        d_positive_factors + d_negative_factors)]
-            
+            return [
+                Fraction(a, b) for a, b in itertools.product(
+                    n_positive_factors +
+                    n_negative_factors, d_positive_factors +
+                    d_negative_factors)
+            ]
+
         roots = []
 
         # if 0 is a root, eliminate it now
@@ -202,8 +206,38 @@ class Mathy(commands.Cog):
         # the index indicates the power
         # value in list would be the coefficients
         # only print the remaining polynomial if len(polynomial) > 2
-        
-        await ctx.send(f"Rational roots for polynomial: {roots}")
+        format_root = "Roots: "
+        ftt = 0
+        for frac in roots:
+            holder = frac.as_integer_ratio()
+            if holder[0] == 0:
+                holder = "0"
+            elif holder[1] == 1:
+                holder = "{0}".format(holder[0])
+            else:
+                holder = "{0}/{1}".format(holder[0], holder[1])
+
+            if ftt == 0:
+                format_root = format_root + holder
+                ftt = 1
+            else:
+                format_root = format_root + ', ' + holder
+
+        if len(polynomial) > 2:
+            poly_rem = "\nRemaining Polynomial: "
+            ftt = 0
+            counter = 0
+            for poly in polynomial:
+                holder = str(poly.as_integer_ratio()[0]) + 'x^' + str(counter)
+                if ftt == 0:
+                    poly_rem += holder
+                    ftt = 1
+                else:
+                    poly_rem += ' + ' + holder
+                counter += 1
+            format_root = format_root + poly_rem
+
+        await ctx.send(format_root)
         return
 
 

@@ -64,8 +64,19 @@ class Private(commands.Cog):
 
     #Command purge, deleting the number of messages dictated in field 'num'. 'All' used in command clear instead, 'my' replaced with targetted deletion. Limit of purge is 50, with the bot only being able to purge messages within the channel.
     @bot.command(pass_context=True)
-    async def purge(self, ctx, num=0, id=""):
+    async def purge(self, ctx, num='0', id=""):
+      
         counter = 0
+      
+        try:
+          num = int(num)
+        except ValueError:
+          if num=='All' or num=='all' or num=='ALL':
+            await self.clear(ctx)
+          else:
+            await ctx.send("That's not a valid input.")
+          return
+      
         if num > 50:
             await ctx.send(
                 'Too many messages to delete, please keep it under 50.')
@@ -73,6 +84,7 @@ class Private(commands.Cog):
         elif num <= 0:
             await ctx.send('Choose a number greater than 0.')
             return
+  
         if id == "":
             await ctx.channel.purge(limit=num)
         else:

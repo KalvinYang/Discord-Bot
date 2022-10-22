@@ -25,13 +25,45 @@ class Music(commands.Cog):
         self.music_queue = []
 
         self.YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': True}
+
         self.vc = None
+        self.to_play = None
 
 #Begin work on play function
 #---------------------------------------
 
     @bot.command(pass_context=True)
-    async def play(self, ctx, *args):
+    async def queue(self, ctx, url):
+      
+        ytdl = YoutubeDL(self.YDL_OPTIONS)
+        holder = ytdl.extract_info(url, download=False)
+        song = holder['url']
+        self.music_queue.append(song)
+        print(self.music_queue)
+        
+    @bot.command(pass_context=True)
+    async def next_song(self, ctx):
+      self.is_playing = True
+      song = self.music_queue.pop(0)
+      self.to_play.play(discord.FFmpegPCMAudio(song),
+                          after=lambda e: self.next_song())
+      self.is_playing = False
+      return
+  
+    @bot.command(pass_context=True)
+    async def play_music(self, ctx, url):
+
+        channel = ctx.author.voice
+        #await self.join(ctx)
+        ytdl = YoutubeDL(self.YDL_OPTIONS)
+        holder = ytdl.extract_info(url, download=False)
+        song = holder['url']
+        self.vc = channel.channel
+        self.is_playing = True
+        self.to_play = await channel.channel.connect()
+        self.to_play.play(discord.FFmpegPCMAudio(song),
+                          after=lambda e: self.next_song())
+        self.is_playing = False
         return
 
 
@@ -41,25 +73,32 @@ class Music(commands.Cog):
     async def disconnect(self, ctx):
         #joins the discord vc
         channel = ctx.guild.voice_client
+        self.vc = None
         await channel.disconnect()
 
     #Command Join, Allows the Roomz Bot to join a voice channel from where the user is already in when the command is called
     @bot.command(pass_context=True)
     async def join(self, ctx):
+
+        if ctx.author.voice == None:
+            await ctx.send("You aren't in a channel.")
+            return
+
         #joins the discord vc
         channel = ctx.author.voice.channel
-        connected = ctx.guild.voice_client
-        try:
+
+        if self.vc == None:
             await channel.connect()
-        except discord.ClientException:
-            voice_client = discord.utils.get(
-                self.bot.voice_clients, guild=ctx.guild
-            )  #gets bot channel object, need the channel by using .channel
-            if channel == voice_client.channel:
-                await ctx.send('I am already here!')
-            else:
-                await connected.disconnect()
-                await channel.connect()
+
+        elif not discord.utils.get(self.bot.voice_clients,
+                                   guild=ctx.guild).channel == channel:
+            await self.disconnect
+            await channel.connect()
+
+        else:
+            await ctx.send('I am already here!')
+
+        self.vc = channel
 
 
 def setup(bot):
