@@ -1,4 +1,6 @@
 import discord
+import asyncio
+import time
 from discord.ext import commands
 from youtube_dl import YoutubeDL
 
@@ -32,39 +34,76 @@ class Music(commands.Cog):
 #Begin work on play function
 #---------------------------------------
 
+    def count_queue(self):
+        count = 0
+        for item in self.music_queue:
+            count += 1
+        return count
+
+    @bot.command(pass_context=True)
+    async def skip(self, ctx):
+        await self.stop(ctx)
+        self.next_song(ctx)
+
+    @bot.command(pass_context=True)
+    async def qlist(self, ctx):
+        count = 0
+        if self.music_queue == False:
+            await ctx.send('No items in queue.')
+        count = self.count_queue()
+        if count == 1:
+            await ctx.send(str(count + 'item in queue.'))
+            return
+        await ctx.send(str(count) + ' items in queue.')
+
     @bot.command(pass_context=True)
     async def queue(self, ctx, url):
-      
+
         ytdl = YoutubeDL(self.YDL_OPTIONS)
         holder = ytdl.extract_info(url, download=False)
         song = holder['url']
         self.music_queue.append(song)
         print(self.music_queue)
-        
-    @bot.command(pass_context=True)
-    async def next_song(self, ctx):
-      self.is_playing = True
-      song = self.music_queue.pop(0)
-      self.to_play.play(discord.FFmpegPCMAudio(song),
-                          after=lambda e: self.next_song())
-      self.is_playing = False
-      return
-  
+
+    def next_song(self, ctx):
+        time.sleep(3)
+        try:
+            song = self.music_queue.pop(0)
+        except:
+            self.is_playing = False
+            return
+        self.to_play.play(discord.FFmpegPCMAudio(song),
+                          after=lambda e: self.next_song(ctx))
+        return
+
     @bot.command(pass_context=True)
     async def play_music(self, ctx, url):
+        await ctx.send("Playing song.")
 
         channel = ctx.author.voice
-        #await self.join(ctx)
         ytdl = YoutubeDL(self.YDL_OPTIONS)
         holder = ytdl.extract_info(url, download=False)
         song = holder['url']
+        await self.join(ctx)
         self.vc = channel.channel
+        self.to_play = discord.utils.get(self.bot.voice_clients,
+                                         guild=ctx.guild)
+
         self.is_playing = True
-        self.to_play = await channel.channel.connect()
         self.to_play.play(discord.FFmpegPCMAudio(song),
-                          after=lambda e: self.next_song())
-        self.is_playing = False
+                          after=lambda e: self.next_song(ctx))
+        await self.autoleave(ctx)
         return
+
+    @bot.command(pass_context=True)
+    async def stop(self, ctx):
+        self.to_play.stop()
+
+    async def autoleave(self, ctx):
+        while self.is_playing == True or self.is_paused == True:
+            print('checking if playing')
+            await asyncio.sleep(20)
+        await self.disconnect(ctx)
 
 
 #---------------------------------------
