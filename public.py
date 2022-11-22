@@ -78,11 +78,18 @@ class Public(commands.Cog):
         await ctx.send("This person does not exist in this server.")
         return
 
+    @bot.command(pass_context=True)
+    async def sayrandnum(self,ctx, num=10):
+        await ctx.send("Count to:")
+        num = await self.randomnum(ctx,num)
+        await self.saynum(ctx, num)
+      
     #Command randomnum, chooses a random number from 0 to 10 by default. Chooses random number between 0 and indicated otherwise.
     @bot.command(pass_context=True)
     async def randomnum(self, ctx, num=10):
         somenumber = random.randrange(num)
         await ctx.send('Number: {0}'.format(somenumber))
+        return somenumber
 
     #Command saynum, sends separate messages counting from 1 to indicated number, so long as it is within 50 to minimize clutter.
     @bot.command(pass_context=True)
