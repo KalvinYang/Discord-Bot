@@ -73,15 +73,15 @@ class Music(commands.Cog):
 
 #---------------------------------------
 
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True,aliases=[],brief="holder 7",description="holder 7 description")
     async def skip(self, ctx):
         self.to_play.stop()
 
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True,aliases=[],brief="holder 8",description="holder 8 description")
     async def c_song(self, ctx):
         await ctx.send("Current song: " + self.current_song)
 
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True,aliases=[],brief="holder 9",description="holder 9 description")
     async def qlist(self, ctx):
         the_list = "Current song: " + self.current_song + "\n"
         count = 0
@@ -90,7 +90,7 @@ class Music(commands.Cog):
             the_list = the_list + str(count) + ": " + i + '\n'
         await ctx.send(the_list)
 
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True,aliases=[],brief="holder 10",description="holder 10 description")
     async def qlength(self, ctx):
         count = 0
         if self.music_queue == False:
@@ -101,7 +101,7 @@ class Music(commands.Cog):
             return
         await ctx.send(str(count) + ' items in queue.')
 
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True,aliases=[],brief="holder 11",description="holder 11 description")
     async def queue(self, ctx, url):
         ytdl = YoutubeDL(self.YDL_OPTIONS)
         holder = ytdl.extract_info(url, download=False)
@@ -110,7 +110,7 @@ class Music(commands.Cog):
         self.music_queue.append(song)
         print(self.titles)
 
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True,aliases=[],brief="holder 12",description="holder 12 description")
     async def play_q(self,ctx):
       if self.vc == None:
         await self.join(ctx)
@@ -118,7 +118,7 @@ class Music(commands.Cog):
                                            guild=ctx.guild)
       self.next_song(ctx)
   
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True,aliases=[],brief="holder 13",description="holder 13 description")
     async def play_music(self, ctx, url):
     
         await self.queue(ctx, url)
@@ -141,7 +141,7 @@ class Music(commands.Cog):
           await ctx.send("Playing video.")
           await self.autoleave(ctx)
 
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True,aliases=[],brief="holder 14",description="holder 14 description")
     async def pause(self, ctx):
         if not self.speakingnow(ctx):
             await ctx.send("Not playing anything.")
@@ -153,7 +153,7 @@ class Music(commands.Cog):
             self.is_paused = True
             self.is_playing = False
 
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True,aliases=[],brief="holder 15",description="holder 15 description")
     async def resume(self, ctx):
         if not self.speakingnow(ctx):
             await ctx.send("Not playing anything.")
@@ -165,18 +165,18 @@ class Music(commands.Cog):
             self.is_playing = True
             self.is_paused = False
 
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True,aliases=[],brief="holder 16",description="holder 16 description")
     async def clear_q(self):
         self.music_queue.clear()
         self.titles.clear()
   
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True,aliases=[],brief="holder 17",description="holder 17 description")
     async def stop(self, ctx):
         await self.clear_q()
         self.current_song = ""
         await self.skip(ctx)
 
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True,aliases=[],brief="holder 18",description="holder 18 description")
     async def disconnect(self, ctx):
         if self.count_queue() > 0 or not self.current_song == "":
           await self.stop(ctx)
@@ -185,7 +185,7 @@ class Music(commands.Cog):
         self.resetvoice()
 
     #Command Join, Allows the Roomz Bot to join a voice channel from where the user is already in when the command is called
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True,aliases=[],brief="holder 19",description="holder 19 description")
     async def join(self, ctx):
 
         if ctx.author.voice == None:

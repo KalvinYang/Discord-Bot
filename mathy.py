@@ -25,8 +25,50 @@ class Mathy(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @bot.command(pass_context=True, aliases=[""], brief="holder 1", description="holder 1 description")
+    async def simplecalculations(self, ctx, *args):
+        if len(args) == 0:
+            await ctx.send("Nothing inputted to calculate.")
+            return
+        numlist = []
+        count = 0
+        operation = ''
+        num = 0.0
+        for number in args:
+            numlist.append(number)
+        for number in numlist:
+            if count % 2 == 1:
+                if number == '+' or number == '-' or number == '/' or number == '*' or number == 'x':
+                    operation = number
+                else:
+                    await ctx.send(
+                        "1 or more operation arguments are formatted wrong, argument "
+                        + str(count + 1) + ".")
+                    return
+            else:
+                try:
+                    holder = float(number)
+                    if count == 0:
+                        num = holder
+                    else:
+                        if operation == '+':
+                            num += holder
+                        elif operation == '-':
+                            num -= holder
+                        elif operation == '/':
+                            num /= holder
+                        elif operation == '*' or operation == 'x':
+                            num *= holder
+                except ValueError:
+                    await ctx.send(
+                        "1 or more arguments are formatted wrong, arguement " +
+                        str(count + 1) + ".")
+                    return
+            count += 1
+        await ctx.send("Answer: " + str(num))
+
     #Command add, simply finds the sum of all argument numbers together. Rounds to nearest int.
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True, aliases=[], brief="holder 2", description="holder 2 description")
     async def add(self, ctx, *args):
         if len(args) == 0:
             await ctx.send("You didn't input anything to add.")
@@ -44,7 +86,7 @@ class Mathy(commands.Cog):
         await ctx.send('Sum: {0}'.format(num))
 
     #Command subtract, simply finds the difference of all argument numbers together, given the first number as the initial value. Rounds to nearest int.
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True, aliases=[], brief="holder 3", description="holder 3 description")
     async def subtract(self, ctx, num=0.0, *args):
         if len(args) == 1:
             await ctx.send("You didn't input anything to subtract.")
@@ -60,7 +102,7 @@ class Mathy(commands.Cog):
         await ctx.send('Difference: {0}'.format(num))
 
     #Command multiply, finds the product of all argumant numbers togethers. Rounds to nearest int.
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True, aliases=[], brief="holder 4", description="holder 4 description")
     async def multiply(self, ctx, *args):
         if len(args) == 0:
             await ctx.send("You didn't input anything to multiply.")
@@ -76,7 +118,7 @@ class Mathy(commands.Cog):
         num = int(round(num))
         await ctx.send('Product: {0}'.format(num))
 
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True, aliases=[], brief="holder 5", description="holder 5 description")
     async def divide(self, ctx, num=0.0, *args):
         if len(args) == 0:
             await ctx.send("You didn't input anything to divide.")
@@ -94,12 +136,12 @@ class Mathy(commands.Cog):
         await ctx.send('Quotient: {0}'.format(num))
 
     # find rational roots for a polynomial with integral coefficients
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True, aliases=[], brief="holder 6", description="holder 6 description")
     async def find_roots(self, ctx, *args):
         polynomial = ''.join(args)
-        tokens = list(filter(
-            lambda s: s,
-            polynomial.replace('-', '+-').split('+')))
+        tokens = list(
+            filter(lambda s: s,
+                   polynomial.replace('-', '+-').split('+')))
         polynomial = []
 
         def place_coef(polynomial, coef, exp):

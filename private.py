@@ -22,14 +22,14 @@ class Private(commands.Cog):
         self.bot = bot
 
     #Command allmembers, prints all members across all server that the bot is present in.
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True,aliases=[],brief="holder 20",description="holder 20 description")
     async def allmembers(self, ctx):
         for guild in self.bot.guilds:
             for member in guild.members:
                 print(guild, member)
 
     #Command members, a subset command of allmembers made into its' own that sends a list of all users in a server to the command caller.
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True,aliases=[],brief="holder 21",description="holder 21 description")
     async def members(self, ctx):
         the_guild = ctx.guild
         guild_members = ''
@@ -43,7 +43,7 @@ class Private(commands.Cog):
             guild_members)
 
     #Command clearbot, clears all messages from the bot within dms.
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True,aliases=[],brief="holder 22",description="holder 22 description")
     async def clearbot(self, ctx):
         dm = ctx.author.dm_channel
         bot_name = self.bot.user
@@ -54,7 +54,7 @@ class Private(commands.Cog):
             await ctx.author.send("DMs deleted.")
 
     #Command clear, deletes all messages from a channel in one go.
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True,aliases=[],brief="holder 23",description="holder 23 description")
     async def clear(self, ctx):
         count = 0
         async for message in ctx.channel.history(limit=None):
@@ -63,7 +63,7 @@ class Private(commands.Cog):
         await ctx.send("All channel messages have been deleted.")
 
     #Command purge, deleting the number of messages dictated in field 'num'. 'All' used in command clear instead, 'my' replaced with targetted deletion. Limit of purge is 50, with the bot only being able to purge messages within the channel.
-    @bot.command(pass_context=True)
+    @bot.command(pass_context=True,aliases=[],brief="holder 24",description="holder 24 description")
     async def purge(self, ctx, num='0', id=""):
       
         counter = 0

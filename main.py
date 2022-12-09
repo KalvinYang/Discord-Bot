@@ -2,6 +2,28 @@
 #Roomz Bot originally was a connection bot, but the scope of the project has now been extended to a multi-purpose bot that can help with your server experience.
 #It doesn't matter how big or small the server is. It works for all sizes!
 
+#To do list:
+#1. Image Searching that sends designated amount of relevant photos.
+#2. Fastforwarding
+#3. Rewinding
+#4. Remake help command (use briefs, aliases and descriptions)
+#5. Search youtube and play song from chosen search
+#6. Finish descriptions, aliases and briefs for each functions
+#7. Line by line documentation
+#8. More math functions (build off of each other)
+#9. Make simple games (make games cog)
+#10. Learn and implement database for the items below
+#11. Server leveling system
+#12. Saved games, simple and accessable
+#13. Inventories, save across games (coins and such)
+#14. Make larger scale, think shoob, karuta, epic rpg
+#15. Event planner
+#16. Local schedule database for server (upload/update own planner, i.e. "&schedule @stevethestevemon" will pull up a picture with that person's schedule. "&edit_schedule *link*" to edit your schedule.)
+#17. Make a secret santa cog setup cog (SS cog)
+#18. Make functions in SS to randomize people and produce a list of cooresponding secret santas
+#19. Make functions that auto deliver their secret santas just in case the original message sender doesn't want to know who gets who
+#20. Make open-ai cog (OA cog) that will connect to open-ai and be capable of sending inputs and sending back the results
+
 #Make sure you hit green run button before you try bot commands! otherwise bot is offline
 
 #Base import needed to connect bot.
@@ -60,11 +82,17 @@ async def on_ready():
 #----------------------------------------------------
 @bot.event
 async def on_member_join(member):
-    member.send('Welcome to {0}, glad to have you and have a nice stay!'.format(member.guild))
+    member.send(
+        'Welcome to {0}, glad to have you and have a nice stay!'.format(
+            member.guild))
+
 
 @bot.event
 async def on_invite_create(ctx):
-    ctx.guild.owner.send('Someone has created an invite for channel: {0}'.format(ctx.channel))
+    ctx.guild.owner.send(
+        'Someone has created an invite for channel: {0}'.format(ctx.channel))
+
+
 #----------------------------------------------------
 
 #This is whenever there are command errors, these will be checked and outputted as needed.
@@ -80,6 +108,46 @@ async def on_invite_create(ctx):
 #        await ctx.channel.send('Error: BadArgument')
 #        return
 
+#Command help, sending the list of current commands to the author of the command. It builds the paragraph manually from the parts in the command list and then mentions the author to check DMs. After of which it deletes the original command.
+@bot.command(pass_context=True, brief="List of all commands")
+async def help(ctx, searchcommand=""):
+    if searchcommand == "":
+        command_send = "```Commands:\n"
+        help_command = bot.get_command("help")
+        command_send += '\n' + help_command.name.capitalize() + ': ' + help_command.brief + '\n'
+        for cog in startup_extensions:
+            cog_name = cog.capitalize()
+            command_send += "\n--------------------------------------------------"
+            command_send += '\n\n' + cog_name + ':\n'
+            cog_object = bot.get_cog(cog_name)
+            cog_commands = cog_object.get_commands()
+            for cmnd in cog_commands:
+                command_send += '&' + cmnd.name + ': ' + cmnd.brief + '\n'
+        command_send += "```"
+        await ctx.send('{0} Check Your DMs'.format(ctx.author.mention))
+        await ctx.author.send(command_send)
+        try:
+            await ctx.message.delete()
+        except discord.Forbidden:
+            return
+    else:
+      for c in bot.commands:
+        if searchcommand == c.name:
+          command_send = "```&" + c.name + ": " + c.description + "\n\nAliases: "
+          if c.aliases == []:
+            command_send += "None"
+          else:
+            for alias in c.aliases:
+              command_send += alias + ', '
+          command_send+="```"
+          await ctx.send('{0} Check Your DMs'.format(ctx.author.mention))
+          await ctx.author.send(command_send)
+          try:
+              await ctx.message.delete()
+              return
+          except discord.Forbidden:
+              return
+      await ctx.author.send("Sorry there is no such command.")
 
 #Event on_message, currently only has basic functionality to delete it's own messages to reduce clutter. line 'await bot.process_commands(message_1)' allows for commands to work despite the inclusion of this event. Otherwise the other commands would be ignored due to a coroutine.
 @bot.event
