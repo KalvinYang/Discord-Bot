@@ -62,7 +62,7 @@ bot.remove_command("help")
 
 #List of messages, currently from the first build, thinking of perhaps using a database for commands and messages, but will currently stick to this to allow code to continue to work for now.
 messages = [
-    'Hello there!', "Hey what's up?", 'How are you doing?', 'Nice to meet you!'
+    'Hello there!', "Hey what's up?", 'How are you doing?', 'Nice to meet you!', "We're here to talk to you about your car's extended warranty.", "This is the government, here to say that your social security card is out of date.", "Want to hop in vc?"
 ]
 
 
@@ -108,46 +108,73 @@ async def on_invite_create(ctx):
 #        await ctx.channel.send('Error: BadArgument')
 #        return
 
+
 #Command help, sending the list of current commands to the author of the command. It builds the paragraph manually from the parts in the command list and then mentions the author to check DMs. After of which it deletes the original command.
 @bot.command(pass_context=True, brief="List of all commands")
 async def help(ctx, searchcommand=""):
+    emb = discord.Embed(color=0x3498db)
+    emb.set_author(name=ctx.author.display_name,url=discord.embeds.EmptyEmbed,icon_url=ctx.author.avatar_url)
+    emb.set_thumbnail(url=bot.user.avatar_url)
     if searchcommand == "":
-        command_send = "```Commands:\n"
-        help_command = bot.get_command("help")
-        command_send += '\n' + help_command.name.capitalize() + ': ' + help_command.brief + '\n'
+        emb.title = "Commands"
+        count = 0
         for cog in startup_extensions:
+            the_value="\u200b"
+            if count == 0:
+              help_command = bot.get_command("help")
+              help_command = "**&" + help_command.name.capitalize() +":** " + help_command.brief
+              the_value=help_command
+              count = 1
+            emb.add_field(name=the_value,value="\u200b",inline=False)
             cog_name = cog.capitalize()
-            command_send += "\n--------------------------------------------------"
-            command_send += '\n\n' + cog_name + ':\n'
             cog_object = bot.get_cog(cog_name)
             cog_commands = cog_object.get_commands()
+            command_send = "--------------------------------------------------\n"
             for cmnd in cog_commands:
-                command_send += '&' + cmnd.name + ': ' + cmnd.brief + '\n'
-        command_send += "```"
+                command_send += '**&' + cmnd.name + ':** ' + cmnd.brief + '\n'
+            emb.add_field(name="**"+cog_name+"**",value=command_send,inline=False)
         await ctx.send('{0} Check Your DMs'.format(ctx.author.mention))
-        await ctx.author.send(command_send)
+        await ctx.author.send(embed=emb)
         try:
             await ctx.message.delete()
         except discord.Forbidden:
             return
-    else:
-      for c in bot.commands:
-        if searchcommand == c.name:
-          command_send = "```&" + c.name + ": " + c.description + "\n\nAliases: "
-          if c.aliases == []:
-            command_send += "None"
-          else:
-            for alias in c.aliases:
-              command_send += alias + ', '
-          command_send+="```"
+    elif searchcommand in startup_extensions:
+      for cog in startup_extensions:
+        if cog == searchcommand or cog.capitalize() == searchcommand:
+          cog_name = cog.capitalize()
+          emb.title = cog_name + " Commands"
+          cog_object = bot.get_cog(cog_name)
+          cog_commands = cog_object.get_commands()
+          command_send = ""
+          for cmnd in cog_commands:
+            command_send += "**&" + cmnd.name + ':** ' + cmnd.brief +'\n'
+          emb.description = command_send
           await ctx.send('{0} Check Your DMs'.format(ctx.author.mention))
-          await ctx.author.send(command_send)
+          await ctx.author.send(embed=emb)
           try:
-              await ctx.message.delete()
-              return
+            await ctx.message.delete()
           except discord.Forbidden:
-              return
-      await ctx.author.send("Sorry there is no such command.")
+            return
+    else:
+        for c in bot.commands:
+            if searchcommand == c.name or searchcommand in c.aliases:
+                emb.title="&" + c.name
+                command_send =  c.description + "\n\n**Aliases:**\n"
+                if c.aliases == []:
+                    command_send += "None"
+                else:
+                    for alias in c.aliases:
+                        command_send += alias + ', '
+                emb.description = command_send
+                await ctx.send('{0} Check Your DMs'.format(ctx.author.mention))
+                await ctx.author.send(embed=emb)
+                try:
+                    await ctx.message.delete()
+                    return
+                except discord.Forbidden:
+                    return
+        await ctx.author.send("Sorry there is no such command or section.")
 
 #Event on_message, currently only has basic functionality to delete it's own messages to reduce clutter. line 'await bot.process_commands(message_1)' allows for commands to work despite the inclusion of this event. Otherwise the other commands would be ignored due to a coroutine.
 @bot.event

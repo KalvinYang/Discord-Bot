@@ -25,7 +25,13 @@ class Mathy(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @bot.command(pass_context=True, aliases=[""], brief="holder 1", description="holder 1 description")
+    @bot.command(
+        pass_context=True,
+        aliases=["scal", "simplecal", "sc"],
+        brief="Calculate given equation in order of input.",
+        description=
+        "Given any number of integers or floats and operations (addition, subtraction, multiplication, or division) in an alternating fashion ending in a number. If two numbers are separated by a space then the command will not work. Likewise if two operations are side by side at all the command will not work. The initial and final arguments must be numbers, the first gives initial value, final allows for final operation to occur.\n\n**Usage:**\n&simplecalculations {number} {operation} ... {operation} {number}"
+    )
     async def simplecalculations(self, ctx, *args):
         if len(args) == 0:
             await ctx.send("Nothing inputted to calculate.")
@@ -68,7 +74,13 @@ class Mathy(commands.Cog):
         await ctx.send("Answer: " + str(num))
 
     #Command add, simply finds the sum of all argument numbers together. Rounds to nearest int.
-    @bot.command(pass_context=True, aliases=[], brief="holder 2", description="holder 2 description")
+    @bot.command(
+        pass_context=True,
+        aliases=['a', "sum"],
+        brief="Add numbers together.",
+        description=
+        "Given any number of arguments that are integers or floats, add them together. (Rounded to nearest integer) Base number is 0, any arugment inputted is added to that.\n\n**Usage:**\n&add {number} ... {number}"
+    )
     async def add(self, ctx, *args):
         if len(args) == 0:
             await ctx.send("You didn't input anything to add.")
@@ -86,9 +98,15 @@ class Mathy(commands.Cog):
         await ctx.send('Sum: {0}'.format(num))
 
     #Command subtract, simply finds the difference of all argument numbers together, given the first number as the initial value. Rounds to nearest int.
-    @bot.command(pass_context=True, aliases=[], brief="holder 3", description="holder 3 description")
-    async def subtract(self, ctx, num=0.0, *args):
-        if len(args) == 1:
+    @bot.command(
+        pass_context=True,
+        aliases=["sub", 's'],
+        brief="Subtracts numbers from each other.",
+        description=
+        "Given any number of arguments that are integers or floats, subtract them in order of input. (Rounded to nearest integer) The first argument acting as the base number.\n\n**Usage:**\n&subtract {number} {number} ... {number}"
+    )
+    async def subtract(self, ctx, num=None, *args):
+        if num == None:
             await ctx.send("You didn't input anything to subtract.")
             return
         for number in args:
@@ -102,7 +120,13 @@ class Mathy(commands.Cog):
         await ctx.send('Difference: {0}'.format(num))
 
     #Command multiply, finds the product of all argumant numbers togethers. Rounds to nearest int.
-    @bot.command(pass_context=True, aliases=[], brief="holder 4", description="holder 4 description")
+    @bot.command(
+        pass_context=True,
+        aliases=["times", "mult", "mul", "product"],
+        brief="Multiplies all given numbers together.",
+        description=
+        "Given any number of arguments that are integers or floats, multiple them together in order of input. (Rounded to nearest integer)\n\n**Usage:**\n&multiply {number} {number} ..."
+    )
     async def multiply(self, ctx, *args):
         if len(args) == 0:
             await ctx.send("You didn't input anything to multiply.")
@@ -118,7 +142,13 @@ class Mathy(commands.Cog):
         num = int(round(num))
         await ctx.send('Product: {0}'.format(num))
 
-    @bot.command(pass_context=True, aliases=[], brief="holder 5", description="holder 5 description")
+    @bot.command(
+        pass_context=True,
+        aliases=["quotient", "div", "d"],
+        brief="Divides the first argument by all other given numbers.",
+        description=
+        "Given any number of arguments that are integers or floats, the first argument acts as the base number. Divides the base number by all other arguments in order of input. (Rounded to nearest integer)\n\n**Usage:**\n&divide {number} {number} ..."
+    )
     async def divide(self, ctx, num=0.0, *args):
         if len(args) == 0:
             await ctx.send("You didn't input anything to divide.")
@@ -131,12 +161,18 @@ class Mathy(commands.Cog):
                 await ctx.send(
                     'There is something that is not a number in here.')
                 return
-
         num = int(round(num))
         await ctx.send('Quotient: {0}'.format(num))
 
     # find rational roots for a polynomial with integral coefficients
-    @bot.command(pass_context=True, aliases=[], brief="holder 6", description="holder 6 description")
+    @bot.command(
+        pass_context=True,
+        aliases=["froot", "findr", "roots", "fr"],
+        brief=
+        "Find rational roots for a polynomial with integral coefficients.",
+        description=
+        "Given a polynomial of any length and size, find the rational roots of it with the remaining polynomial returned as well. If the roots cannot be found, an empty list will be returned with the remaining polynomial matching the input.\n\n**Usage:**\n&find_roots {{coefficient}{variable letter}{exponent}} {operation} ..."
+    )
     async def find_roots(self, ctx, *args):
         polynomial = ''.join(args)
         tokens = list(
