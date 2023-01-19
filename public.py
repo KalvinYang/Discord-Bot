@@ -25,6 +25,36 @@ messages = [
 class Public(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.ecolor = 0x3498db
+
+    #Embedding for message ui looking better, automatically set to sending to origin channel
+    async def embed(self, ctx, message="", sendto=1, user=None):
+        #Take cog color (self.ecolor) as color, and command name as title
+        emb = discord.Embed(color=self.ecolor,
+                            title=str(ctx.command).capitalize() + " Results:")
+        #Sets the user that called command as author by taking their name and pfp
+        emb.set_author(name=ctx.author.display_name,
+                       url=discord.embeds.EmptyEmbed,
+                       icon_url=ctx.author.avatar_url)
+        #Set message of embed
+        emb.description = message
+        #Send to origin channel
+        if sendto==1:
+          await ctx.send(embed=emb)
+        #Send to user direct messages
+        elif sendto==2:
+          await ctx.author.send(embed=emb)
+        #Send to origin channel alternate
+        elif sendto==3:
+          await ctx.channel.send(embed=emb)
+        #Send to specified user
+        elif sendto==4 and not user ==None:
+          try:
+            await user.send(embed=emb)
+          except:
+            #If no such user, send back command fail
+            emb.description = "An error occurred."
+            await ctx.author.send(embed=emb)
 
     #Command talk, by calling command and an name into the 'user' field it searches the server to find if such a person exists, if they do it sends a randomized message to them. Although basic, it is a legacy command from the original project. Perhaps it could be expanded on.
     #Edit: Now only sends randomized messages when 'msg' field is empty. Otherwise will send intended message to 'user' so long as they are within the server.
@@ -39,24 +69,24 @@ class Public(commands.Cog):
         all_members = ctx.guild.members
         print('user: ' + user)
         if user == ctx.author.name or user == ctx.author or user == ctx.author.mention:
-            await ctx.send("Why are you sending a message to yourself?")
+            await self.embed(ctx,"Why are you sending a message to yourself? Anyways, here's your message.\n\n" + msg,2)
             return
         for member in all_members:
             print('member name: ' + member.name)
             if member.name == user or member == user or member.mention == user:
                 if member.bot == True:
-                    await ctx.send("This is a bot, cannot send message.")
+                    await self.embed(ctx,"This is a bot, cannot send message them.")
                     return
                 if msg == "":
                     new_message = random.choice(messages)
                 else:
                     new_message = msg
-                await member.send(ctx.author.name + ' to ' + member.name +
-                                  ': ' + new_message)
-                await ctx.author.send('You to ' + member.name + ': ' +
-                                      new_message)
+                await self.embed(ctx,ctx.author.name + ' to ' + member.name +
+                                  ':\n\n' + new_message,4,member)
+                await self.embed(ctx,'You to ' + member.name + ':\n\n' +
+                                      new_message,2)
                 return
-        await ctx.send("This person does not exist in this server.")
+        await self.embed(ctx,"This person does not exist in this server.")
         return
 
 
@@ -70,7 +100,7 @@ class Public(commands.Cog):
         "Given a number, or default setting of 10, randomly choose from 0 to given number. Then send that number of messages to the channel the initial message came from.\n\n**Usage:**\n&sayrandnum {number}\n&sayrandnum"
     )
     async def sayrandnum(self, ctx, num=10):
-        await ctx.send("Count to:")
+        await self.embed(ctx,"Count to:")
         num = await self.randomnumber(ctx, num)
         await self.saynumber(ctx, num)
 
@@ -84,7 +114,7 @@ class Public(commands.Cog):
     )
     async def randomnumber(self, ctx, num=10):
         somenumber = random.randrange(num)
-        await ctx.send('Number: {0}'.format(somenumber))
+        await self.embed(ctx,'Number: {0}'.format(somenumber))
         return somenumber
 
     #Command saynum, sends separate messages counting from 1 to indicated number, so long as it is within 50 to minimize clutter.
@@ -97,14 +127,14 @@ class Public(commands.Cog):
     )
     async def saynumber(self, ctx, num=0):
         if num <= 0:
-            await ctx.channel.send('Cannot count to that number.')
+            await self.embed(ctx,'Cannot count to that number.',3)
             return
         elif num > 50:
-            await ctx.channel.send('Max count limit is 50.')
+            await self.embed(ctx,'Max count limit is 50.',3)
             return
         for number in range(num):
             await asyncio.sleep(0.75)
-            await ctx.channel.send('{0}'.format(number + 1))
+            await self.embed(ctx,'{0}'.format(number + 1),3)
 
     #Command guessnum, guess a number between 0 and 10, randomizes number and tells you if you got it right. Auto allows for auto guessing until the number is achieved and returns the amount of guesses needed.
     @bot.command(
@@ -116,7 +146,7 @@ class Public(commands.Cog):
     )
     async def guessnumber(self, ctx, num=-1, auto='no'):
         if num < 0 or num > 10:
-            await ctx.channel.send('Not a valid guess.')
+            await self.embed(ctx,'Not a valid guess.',3)
             return
         if auto == 'yes' or auto == 'y' or auto == 'Y' or auto == 'YES' or auto == 'Yes':
             counter = 0
@@ -124,7 +154,7 @@ class Public(commands.Cog):
                 somenumber = random.randrange(11)
                 counter += 1
                 if somenumber == num:
-                    await ctx.send(
+                    await self.embed(ctx,
                         'You took {0} guess(es) to get it right.'.format(
                             counter))
                     return
@@ -132,9 +162,9 @@ class Public(commands.Cog):
         print('guess: {0}'.format(num))
         print('value: {0}'.format(somenumber))
         if somenumber == num:
-            await ctx.channel.send('You guessed right!')
+            await self.embed(ctx,'You guessed right!',3)
         else:
-            await ctx.channel.send('WRONG.')
+            await self.embed(ctx,'WRONG.',3)
 
 
 def setup(bot):

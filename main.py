@@ -6,9 +6,9 @@
 #1. Image Searching that sends designated amount of relevant photos.
 #2. Fastforwarding
 #3. Rewinding
-#4. Remake help command (use briefs, aliases and descriptions)
+#4. Remake help command (use briefs, aliases and descriptions)------------------------------Done
 #5. Search youtube and play song from chosen search
-#6. Finish descriptions, aliases and briefs for each functions
+#6. Finish descriptions, aliases and briefs for each functions------------------------------Done
 #7. Line by line documentation
 #8. More math functions (build off of each other)
 #9. Make simple games (make games cog)
@@ -23,6 +23,7 @@
 #18. Make functions in SS to randomize people and produce a list of cooresponding secret santas
 #19. Make functions that auto deliver their secret santas just in case the original message sender doesn't want to know who gets who
 #20. Make open-ai cog (OA cog) that will connect to open-ai and be capable of sending inputs and sending back the results
+#21. Make multi function that calls multiple functions in one line
 
 #Make sure you hit green run button before you try bot commands! otherwise bot is offline
 
@@ -80,6 +81,8 @@ async def on_ready():
 
 #Still testing these
 #----------------------------------------------------
+
+#When someone joins, msg them welcome
 @bot.event
 async def on_member_join(member):
     member.send(
@@ -87,6 +90,7 @@ async def on_member_join(member):
             member.guild))
 
 
+#Whenever someone creates an invite to the server, message the owner of the server
 @bot.event
 async def on_invite_create(ctx):
     ctx.guild.owner.send(
@@ -109,47 +113,69 @@ async def on_invite_create(ctx):
 #        return
 
 
-#Command help, sending the list of current commands to the author of the command. It builds the paragraph manually from the parts in the command list and then mentions the author to check DMs. After of which it deletes the original command.
+#Command help, sending the list of current commands to the author of the command. Takes the briefs, descriptions and/or aliases from each command and compiles them based on 'searchcommand', then sends back the result.
 @bot.command(pass_context=True, brief="List of all commands")
-async def help(ctx, searchcommand=""):
+async def help(ctx, searchcommand=""):\
+    #Setting up basic embed with color chosen
     emb = discord.Embed(color=0x3498db)
-    emb.set_author(name=ctx.author.display_name,url=discord.embeds.EmptyEmbed,icon_url=ctx.author.avatar_url)
+    #Puts up your name, and your profile picture to show that you called the function | url=discord.embeds.EmptyEmbed is filled as Null
+    emb.set_author(name=ctx.author.display_name,icon_url=ctx.author.avatar_url)
+    #Puts the thumbnail of the embed as the bot profile picture
     emb.set_thumbnail(url=bot.user.avatar_url)
+    #Base case of empty 'searchcommand', sends all commands connected to current bot with briefs only.
     if searchcommand == "":
+        #Set embed title
         emb.title = "Commands"
         count = 0
+        #Going through each cog
         for cog in startup_extensions:
+            #Blank character for adding fields
             the_value="\u200b"
+            #Get help command in the embed
             if count == 0:
               help_command = bot.get_command("help")
-              help_command = "**&" + help_command.name.capitalize() +":** " + help_command.brief
+              help_command = "**&" + help_command.name +":** " + help_command.brief
               the_value=help_command
               count = 1
+            #Spacing between cogs
             emb.add_field(name=the_value,value="\u200b",inline=False)
+            #Get cog object, and cog commands
             cog_name = cog.capitalize()
             cog_object = bot.get_cog(cog_name)
             cog_commands = cog_object.get_commands()
+            #Spacer
             command_send = "--------------------------------------------------\n"
+            #Add commands and their briefs
             for cmnd in cog_commands:
                 command_send += '**&' + cmnd.name + ':** ' + cmnd.brief + '\n'
+            #Adds field with cog as field name, and 'command_send' as value
             emb.add_field(name="**"+cog_name+"**",value=command_send,inline=False)
+        #Ping user and send message
         await ctx.send('{0} Check Your DMs'.format(ctx.author.mention))
         await ctx.author.send(embed=emb)
+        #Delete ping if possible
         try:
             await ctx.message.delete()
         except discord.Forbidden:
             return
+    #If 'searchcommand' is a cog
     elif searchcommand in startup_extensions:
+      #Find which cog it is
       for cog in startup_extensions:
         if cog == searchcommand or cog.capitalize() == searchcommand:
+          #Set embed title
           cog_name = cog.capitalize()
           emb.title = cog_name + " Commands"
+          #Get commands
           cog_object = bot.get_cog(cog_name)
           cog_commands = cog_object.get_commands()
-          command_send = ""
+          #Spacer
+          command_send = "--------------------------------------------------\n"
+          #Setup commands and their briefs as embed description
           for cmnd in cog_commands:
-            command_send += "**&" + cmnd.name + ':** ' + cmnd.brief +'\n'
+            command_send += "**&" + cmnd.name + ':** ' + cmnd.brief +'\n\n'
           emb.description = command_send
+          #Ping and send message, then delete ping if possible
           await ctx.send('{0} Check Your DMs'.format(ctx.author.mention))
           await ctx.author.send(embed=emb)
           try:
@@ -157,16 +183,20 @@ async def help(ctx, searchcommand=""):
           except discord.Forbidden:
             return
     else:
+        #See if 'searchcommand' is a command or a command alias
         for c in bot.commands:
             if searchcommand == c.name or searchcommand in c.aliases:
+                #Set embed title and description
                 emb.title="&" + c.name
                 command_send =  c.description + "\n\n**Aliases:**\n"
+                #Checking for aliasses
                 if c.aliases == []:
                     command_send += "None"
                 else:
                     for alias in c.aliases:
                         command_send += alias + ', '
                 emb.description = command_send
+                #Ping user and send message, then delete ping if possible
                 await ctx.send('{0} Check Your DMs'.format(ctx.author.mention))
                 await ctx.author.send(embed=emb)
                 try:
@@ -174,28 +204,34 @@ async def help(ctx, searchcommand=""):
                     return
                 except discord.Forbidden:
                     return
-        await ctx.author.send("Sorry there is no such command or section.")
+        #Nothing matched 'searchcommand' send
+        emb.title="Nothing came up"
+        emb.description="Sorry there is no such command or section."
+        await ctx.author.send(embed=emb)
 
 #Event on_message, currently only has basic functionality to delete it's own messages to reduce clutter. line 'await bot.process_commands(message_1)' allows for commands to work despite the inclusion of this event. Otherwise the other commands would be ignored due to a coroutine.
 @bot.event
 async def on_message(message_1):
+    #Line below used to allow commands to run in tandem with deleting the message.
     await bot.process_commands(message_1)
+
+    #Checks if the message is from the bot
     if message_1.author == bot.user:
+        #Makes sure it is a specific message
         if message_1.content.endswith('Check Your DMs'):
+            #Wait and then delete message
             await asyncio.sleep(3)
-            await message_1.delete()
-        elif message_1.content.startswith('Commands Include:'):
-            await asyncio.sleep(10)
             await message_1.delete()
     return
 
-
+#On startup load all extensions in 'startup_extensions' list of extensions
 if __name__ == "__main__":
     for extension in startup_extensions:
         bot.load_extension(extension)
+#Running bot
 bot.run(os.getenv('token'))
 
-#Runs the bot
+#--------------------------------------------------------------------------------------------------
 
 #Below is legacy code, remanants from the original project used to build portions of the new code. Left in just in case there is inspiration to still be taken from it.
 
