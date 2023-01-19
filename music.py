@@ -6,16 +6,16 @@ import datetime
 from discord.ext import commands
 from youtube_dl import YoutubeDL
 
-#Intents allow for the usage of information within their classes.
+# Intents allow for the usage of information within their classes.
 Intents = discord.Intents.default().all()
 Intents.members = True
 Intents.presences = True
 Intents.guilds = True
 
-#Bot prefix setup and set the bot intentions to those setup above.
+# Bot prefix setup and set the bot intentions to those setup above.
 bot = commands.Bot(intents=Intents, command_prefix='&')
 
-#Removal of help command, this is so that a custom help command can be built.
+# Removal of help command, this is so that a custom help command can be built.
 bot.remove_command("help")
 
 
@@ -34,7 +34,6 @@ class Music(commands.Cog):
         self.current_song = ""
         self.durations = []
 
-        #Youtubedl settings
         self.YDL_OPTIONS = {
             'format': 'bestaudio',
             'noplaylist': True,
@@ -46,8 +45,9 @@ class Music(commands.Cog):
         self.to_play = None
 
         self.ecolor = 0x9b59b6
-#Non-command functions
-#---------------------------------------
+
+    # Non-command functions
+    # ---------------------------------------
 
     #Using music_queue cog variable count how many songs are in queue
     def count_queue(self):
@@ -99,49 +99,49 @@ class Music(commands.Cog):
             return True
         return False
 
-    #
-    #Embedding for message ui looking better, automatically set to sending to origin channel
+    # Embedding for message ui looking better, automatically set to sending to origin channel
     async def embed(self, ctx, message="", sendto=1, user=None):
-        #Take cog color (self.ecolor) as color, and command name as title
+        # Take cog color (self.ecolor) as color, and command name as title
         emb = discord.Embed(color=self.ecolor,
                             title=str(ctx.command).capitalize() + " Results:")
-        #Sets the user that called command as author by taking their name and pfp
+        # Sets the user that called command as author by taking their name and pfp
         emb.set_author(name=ctx.author.display_name,
-                       url=discord.embeds.EmptyEmbed,
-                       icon_url=ctx.author.avatar_url)
-        #Set message of embed
+                       icon_url=ctx.author.avatar)
+        # Set message of embed
         emb.description = message
-        #Send to origin channel
-        if sendto==1:
-          await ctx.send(embed=emb)
-        #Send to user direct messages
-        elif sendto==2:
-          await ctx.author.send(embed=emb)
-        #Send to origin channel alternate
-        elif sendto==3:
-          await ctx.channel.send(embed=emb)
-        #Send to specified user
-        elif sendto==4 and not user ==None:
-          try:
-            await user.send(embed=emb)
-          except:
-            #If no such user, send back command fail
-            emb.description = "An error occurred."
+        # Send to origin channel
+        if sendto == 1:
+            await ctx.send(embed=emb)
+        # Send to user direct messages
+        elif sendto == 2:
             await ctx.author.send(embed=emb)
+        # Send to origin channel alternate
+        elif sendto == 3:
+            await ctx.channel.send(embed=emb)
+        # Send to specified user
+        elif sendto == 4 and not user == None:
+            try:
+                await user.send(embed=emb)
+            except:
+                # If no such user, send back command fail
+                emb.description = "An error occurred."
+                await ctx.author.send(embed=emb)
 
-#---------------------------------------
+    # ---------------------------------------
 
     @bot.command(
         pass_context=True,
         aliases=["sk", "next", "n"],
         brief="Skips current song.",
         description=
-        "If the bot is playing music with a queue it will skip the current song and switch to the next song in queue. If no other song is in queue, there will be no sound. Will not work in you are not in the same channel as the bot.\n\n**Usage:**\n&skip"
+        "If the bot is playing music with a queue it will skip the current song and switch to the next song in queue. "
+        "If no other song is in queue, there will be no sound. Will not work in you are not in the same channel as "
+        "the bot.\n\n**Usage:**\n&skip "
     )
     async def skip(self, ctx):
         if self.samechannel(ctx):
             self.to_play.stop()
-            await self.embed(ctx,"Skipped song.")
+            await self.embed(ctx, "Skipped song.")
 
     @bot.command(
         pass_context=True,
@@ -203,7 +203,8 @@ class Music(commands.Cog):
         aliases=["pq", "playq"],
         brief="Plays music from queue.",
         description=
-        "From queue, play music if queue has any items. If music is already playing nothing will happen.\n\n**Usage:**\n&play_q"
+        "From queue, play music if queue has any items. If music is already playing nothing will "
+        "happen.\n\n**Usage:**\n&play_q "
     )
     async def play_q(self, ctx):
         if self.samechannel(ctx):
@@ -225,7 +226,10 @@ class Music(commands.Cog):
         aliases=["playmusic", "playm", "play"],
         brief="Plays specified song.",
         description=
-        "Given a youtube link, play the specified song. If the bot is not already in user's call, it will join the call then play music. If there is already queued music, but no audio is currently playing, then given link will play first and then start playing the queue. If a song is already playing, then the link will be queued instead.\n\n**Usage:**\n&play_music {link}"
+        "Given a youtube link, play the specified song. If the bot is not already in user's call, it will join the "
+        "call then play music. If there is already queued music, but no audio is currently playing, then given link "
+        "will play first and then start playing the queue. If a song is already playing, then the link will be queued "
+        "instead.\n\n**Usage:**\n&play_music {link} "
     )
     async def play_music(self, ctx, url):
 
@@ -255,9 +259,12 @@ class Music(commands.Cog):
         aliases=["ff"],
         brief="Seek forward or back some number of seconds.",
         description="holder 69"
-    )  #Remember to make a description, use other commands as a reference.
+    )  # Remember to make a description, use other commands as a reference.
     async def seek(self, ctx, timestamp):
-        #figure out a way to get the timestamp using youtubeDL, should be similar to how queue loads information. time_arg should be in the form of a string as they would seek something along the lines of min:seconds, which we can then convert to seconds and find such information in youtubeDL's loaded info. then, we check if it is valid and play the song at that point (second hard part)
+        # figure out a way to get the timestamp using youtubeDL, should be similar to how queue loads information.
+        # time_arg should be in the form of a string as they would seek something along the lines of min:seconds,
+        # which we can then convert to seconds and find such information in youtubeDL's loaded info. then,
+        # we check if it is valid and play the song at that point (second hard part)
         if self.speakingnow(ctx):
             url = self.music_queue[0]
             ytdl = YoutubeDL(self.YDL_OPTIONS)
@@ -268,7 +275,7 @@ class Music(commands.Cog):
             return
         await ctx.send(
             "nothing playing, invalid seek"
-        )  #Switching to embeds, heads up for you to change later.
+        )  # Switching to embeds, heads up for you to change later.
 
         return
 
@@ -277,40 +284,42 @@ class Music(commands.Cog):
         aliases=["pa", 'p'],
         brief="Pauses audio.",
         description=
-        "If the bot is in the same channel as the user and is currently playing audio it will pause said audio. Otherwise this command does nothing.\n\n**Usage:**\n&pause"
+        "If the bot is in the same channel as the user and is currently playing audio it will pause said audio. "
+        "Otherwise this command does nothing.\n\n**Usage:**\n&pause "
     )
     async def pause(self, ctx):
         if self.samechannel(ctx):
             if not self.speakingnow(ctx):
-                await self.embed(ctx,"Not playing anything.")
+                await self.embed(ctx, "Not playing anything.")
                 return
             elif self.is_paused:
-                await self.embed(ctx,"Already paused.")
+                await self.embed(ctx, "Already paused.")
             else:
                 self.to_play.pause()
                 self.is_paused = True
                 self.is_playing = False
-                await self.embed(ctx,"Paused.")
+                await self.embed(ctx, "Paused.")
 
     @bot.command(
         pass_context=True,
         aliases=["re", "continue"],
         brief="Plays paused audio.",
         description=
-        "If the bot is in the same channel as the user and is currently paused it will continue playing the audio. Otherwise this command does nothing.\n\n**Usage:**\n&resume"
+        "If the bot is in the same channel as the user and is currently paused it will continue playing the audio. "
+        "Otherwise this command does nothing.\n\n**Usage:**\n&resume "
     )
     async def resume(self, ctx):
         if self.samechannel(ctx):
             if not self.speakingnow(ctx):
-                await self.embed(ctx,"Not playing anything.")
+                await self.embed(ctx, "Not playing anything.")
                 return
             elif self.is_playing:
-                await self.embed(ctx,"Already playing.")
+                await self.embed(ctx, "Already playing.")
             else:
                 self.to_play.resume()
                 self.is_playing = True
                 self.is_paused = False
-                await self.embed(ctx,"Resumed.")
+                await self.embed(ctx, "Resumed.")
 
     @bot.command(
         pass_context=True,
@@ -322,7 +331,7 @@ class Music(commands.Cog):
         if self.samechannel(ctx):
             self.music_queue.clear()
             self.titles.clear()
-            await self.embed(ctx,"Queue cleared.")
+            await self.embed(ctx, "Queue cleared.")
 
     @bot.command(
         pass_context=True,
@@ -336,14 +345,15 @@ class Music(commands.Cog):
             await self.clear_q(ctx)
             self.current_song = ""
             await self.skip(ctx)
-            await self.embed(ctx,"Stopped.")
+            await self.embed(ctx, "Stopped.")
 
     @bot.command(
         pass_context=True,
         aliases=["countqueue", "countq", "cqueue", "cq"],
         brief="Diconnect bot from channel.",
         description=
-        "If the bot is in the user's channel, it will clear queue and stop current song and then leave the voice channel.\n\n**Usage:**\n&disconnect"
+        "If the bot is in the user's channel, it will clear queue and stop current song and then leave the voice "
+        "channel.\n\n**Usage:**\n&disconnect "
     )
     async def disconnect(self, ctx):
         if self.count_queue() > 0 or not self.current_song == "":
@@ -351,23 +361,25 @@ class Music(commands.Cog):
         channel = ctx.guild.voice_client
         await channel.disconnect()
         self.resetvoice()
-        await self.embed(ctx,"Disconnected.")
+        await self.embed(ctx, "Disconnected.")
 
-    #Command Join, Allows the Roomz Bot to join a voice channel from where the user is already in when the command is called
+    # Command Join, Allows the Roomz Bot to join a voice channel from where the user is already in when the command
+    # is called
     @bot.command(
         pass_context=True,
         aliases=['j'],
         brief="Join the user's voice channel.",
         description=
-        "If the user is in a voice channel, the bot will join that channel. It will say that it is already there if in the same channel already.\n\n**Usage:**\n&join"
+        "If the user is in a voice channel, the bot will join that channel. It will say that it is already there if "
+        "in the same channel already.\n\n**Usage:**\n&join "
     )
     async def join(self, ctx):
 
         if ctx.author.voice == None:
-            await self.embed(ctx,"You aren't in a channel.")
+            await self.embed(ctx, "You aren't in a channel.")
             return
 
-        #joins the discord vc
+        # joins the discord vc
         channel = ctx.author.voice.channel
 
         if self.vc == None:
@@ -379,10 +391,10 @@ class Music(commands.Cog):
             await channel.connect()
 
         else:
-            await self.embed(ctx,'I am already here!')
+            await self.embed(ctx, 'I am already here!')
 
         self.vc = channel
 
 
-def setup(bot):
-    bot.add_cog(Music(bot))
+async def setup(bot):
+    await bot.add_cog(Music(bot))
