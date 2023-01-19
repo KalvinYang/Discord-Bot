@@ -1,4 +1,4 @@
-#Discord imports allow for easy access to connection to discord and making commands.
+# Discord imports allow for easy access to connection to discord and making commands.
 import discord
 from discord.ext import commands
 
@@ -6,56 +6,101 @@ import re
 import itertools
 from fractions import Fraction
 
-#Intents allow for the usage of information within their classes.
+# Intents allow for the usage of information within their classes.
 Intents = discord.Intents.default().all()
 Intents.members = True
 Intents.presences = True
 Intents.guilds = True
 
-#Bot prefix setup and set the bot intentions to those setup above.
+# Bot prefix setup and set the bot intentions to those setup above.
 bot = commands.Bot(intents=Intents, command_prefix='&')
 
-#Command allmembers, originally called 'members' a piece of code taken and used to debug as to why the bot could only view itself when searching in guilds. It lists all users in every server that the bot is within, however list is only available within console.
-
-#Removal of help command, this is so that a custom help command can be built.
+# Removal of help command, this is so that a custom help command can be built.
 bot.remove_command("help")
 
 
 class Mathy(commands.Cog):
+    # Setup cog and cog color
     def __init__(self, bot):
         self.bot = bot
+        self.ecolor = 0x2ecc71
 
+    # Embedding for message ui looking better, automatically set to sending to origin channel
+    async def embed(self, ctx, message="", sendto=1, user=None):
+        # Take cog color (self.ecolor) as color, and command name as title
+        emb = discord.Embed(color=self.ecolor,
+                            title=str(ctx.command).capitalize() + " Results:")
+        # Sets the user that called command as author by taking their name and pfp
+        emb.set_author(name=ctx.author.display_name,
+                       icon_url=ctx.author.avatar)
+        # Set message of embed
+        emb.description = message
+        # Send to origin channel
+        if sendto == 1:
+            await ctx.send(embed=emb)
+        # Send to user direct messages
+        elif sendto == 2:
+            await ctx.author.send(embed=emb)
+        # Send to origin channel alternate
+        elif sendto == 3:
+            await ctx.channel.send(embed=emb)
+        # Send to specified user
+        elif sendto == 4 and not user == None:
+            try:
+                await user.send(embed=emb)
+            except:
+                # If no such user, send back command fail
+                emb.description = "An error occurred."
+                await ctx.author.send(embed=emb)
+
+    # Simplecalculations command, add, subtract, multiply, divide, see description for full explanation
     @bot.command(
         pass_context=True,
         aliases=["scal", "simplecal", "sc"],
         brief="Calculate given equation in order of input.",
         description=
-        "Given any number of integers or floats and operations (addition, subtraction, multiplication, or division) in an alternating fashion ending in a number. If two numbers are separated by a space then the command will not work. Likewise if two operations are side by side at all the command will not work. The initial and final arguments must be numbers, the first gives initial value, final allows for final operation to occur.\n\n**Usage:**\n&simplecalculations {number} {operation} ... {operation} {number}"
+        "Given any number of integers or floats and operations (addition, subtraction, multiplication, or division) "
+        "in an alternating fashion ending in a number. If two numbers are separated by a space then the command will "
+        "not work. Likewise if two operations are side by side at all the command will not work. The initial and "
+        "final arguments must be numbers, the first gives initial value, final allows for final operation to "
+        "occur.\n\n**Usage:**\n&simplecalculations {number} {operation} ... {operation} {number} "
     )
     async def simplecalculations(self, ctx, *args):
+        # check if any arguments to calculate
         if len(args) == 0:
-            await ctx.send("Nothing inputted to calculate.")
+            await self.embed(ctx, "Nothing inputted to calculate.")
             return
+        # Initializing variables
         numlist = []
         count = 0
         operation = ''
         num = 0.0
+        # Setting arguments into a list
         for number in args:
             numlist.append(number)
+        # First argument should be at position 0, using mod to determine if number or operation
         for number in numlist:
+            # Operation parsing
             if count % 2 == 1:
+                # Valid operations
                 if number == '+' or number == '-' or number == '/' or number == '*' or number == 'x':
                     operation = number
+                # Non-valid
                 else:
-                    await ctx.send(
+                    await self.embed(
+                        ctx,
                         "1 or more operation arguments are formatted wrong, argument "
                         + str(count + 1) + ".")
                     return
+            # Numbers
             else:
                 try:
+                    # if number is floatable save
                     holder = float(number)
+                    # zero position holds number as is
                     if count == 0:
                         num = holder
+                    # calculate
                     else:
                         if operation == '+':
                             num += holder
@@ -65,104 +110,145 @@ class Mathy(commands.Cog):
                             num /= holder
                         elif operation == '*' or operation == 'x':
                             num *= holder
+                # if number position is not floatable
                 except ValueError:
-                    await ctx.send(
-                        "1 or more arguments are formatted wrong, arguement " +
+                    await self.embed(
+                        ctx,
+                        "1 or more arguments are formatted wrong, argument " +
                         str(count + 1) + ".")
                     return
+            # Counting for next argument
             count += 1
-        await ctx.send("Answer: " + str(num))
+        # Send result
+        await self.embed(ctx, str(num))
 
-    #Command add, simply finds the sum of all argument numbers together. Rounds to nearest int.
+    # Command add, simply finds the sum of all argument numbers together. Rounds to nearest int.
     @bot.command(
         pass_context=True,
         aliases=['a', "sum"],
         brief="Add numbers together.",
         description=
-        "Given any number of arguments that are integers or floats, add them together. (Rounded to nearest integer) Base number is 0, any arugment inputted is added to that.\n\n**Usage:**\n&add {number} ... {number}"
+        "Given any number of arguments that are integers or floats, add them together. (Rounded to nearest integer) "
+        "Base number is 0, any arugment inputted is added to that.\n\n**Usage:**\n&add {number} ... {number} "
     )
     async def add(self, ctx, *args):
+        # Check for if there were any arguments
         if len(args) == 0:
-            await ctx.send("You didn't input anything to add.")
+            await self.embed(ctx, "You didn't input anything to add.")
             return
+        # Set base number and add others to it
         num = 0.0
         for number in args:
             try:
                 num += float(number)
                 print(num)
+            # If an argument cannot be converted to a number send back that the command failed to execute
             except ValueError:
-                await ctx.send(
-                    'There is something that is not a number in here.')
+                await self.embed(
+                    ctx, "There is something that is not a number in here.")
                 return
+        # Round number to nearest int and make int, then send result back
         num = int(round(num))
-        await ctx.send('Sum: {0}'.format(num))
+        await self.embed(ctx, str(num))
 
-    #Command subtract, simply finds the difference of all argument numbers together, given the first number as the initial value. Rounds to nearest int.
+    # Command subtract, simply finds the difference of all argument numbers together, given the first number as the
+    # initial value. Rounds to nearest int.
     @bot.command(
         pass_context=True,
         aliases=["sub", 's'],
         brief="Subtracts numbers from each other.",
         description=
-        "Given any number of arguments that are integers or floats, subtract them in order of input. (Rounded to nearest integer) The first argument acting as the base number.\n\n**Usage:**\n&subtract {number} {number} ... {number}"
+        "Given any number of arguments that are integers or floats, subtract them in order of input. (Rounded to "
+        "nearest integer) The first argument acting as the base number.\n\n**Usage:**\n&subtract {number} {number} "
+        "... {number} "
     )
     async def subtract(self, ctx, num=None, *args):
+        # Check for if there are any arguments
         if num == None:
-            await ctx.send("You didn't input anything to subtract.")
+            await self.embed(ctx, "You didn't input anything to subtract.")
             return
+        try:
+            # Convert base number to float
+            num = float(num)
+        # If not convertible, then send back command failed
+        except ValueError:
+            await self.embed(ctx, "Your first argument is not a number.")
+            return
+        # From base number subtract all other arguments
         for number in args:
             try:
                 num -= float(number)
+            # If an argument is not convertible, send back command failed
             except ValueError:
-                await ctx.send(
-                    'There is something that is not a number in here.')
+                await self.embed(
+                    ctx, "There is something that is not a number in here.")
                 return
+        # Round to nearest int, convert to int and send back result
         num = int(round(num))
-        await ctx.send('Difference: {0}'.format(num))
+        await self.embed(ctx, str(num))
 
-    #Command multiply, finds the product of all argumant numbers togethers. Rounds to nearest int.
+    # Command multiply, finds the product of all argument numbers together. Rounds to nearest int.
     @bot.command(
         pass_context=True,
         aliases=["times", "mult", "mul", "product"],
         brief="Multiplies all given numbers together.",
         description=
-        "Given any number of arguments that are integers or floats, multiple them together in order of input. (Rounded to nearest integer)\n\n**Usage:**\n&multiply {number} {number} ..."
+        "Given any number of arguments that are integers or floats, multiple them together in order of input. ("
+        "Rounded to nearest integer)\n\n**Usage:**\n&multiply {number} {number} ... "
     )
     async def multiply(self, ctx, *args):
+        # Check for if any arguments
         if len(args) == 0:
-            await ctx.send("You didn't input anything to multiply.")
+            await self.embed(ctx, "You didn't input anything to multiply.")
             return
+        # Set base number
         num = 1.0
+        # multiply base number by each number
         for number in args:
             try:
                 num *= float(number)
+            # If not convertible send back command failed
             except ValueError:
-                await ctx.send(
-                    'There is something that is not a number in here.')
+                await self.embed(
+                    ctx, "There is something that is not a number in here.")
                 return
+        # Round to nearest int, convert to int and send result back
         num = int(round(num))
-        await ctx.send('Product: {0}'.format(num))
+        await self.embed(ctx, str(num))
 
     @bot.command(
         pass_context=True,
         aliases=["quotient", "div", "d"],
         brief="Divides the first argument by all other given numbers.",
         description=
-        "Given any number of arguments that are integers or floats, the first argument acts as the base number. Divides the base number by all other arguments in order of input. (Rounded to nearest integer)\n\n**Usage:**\n&divide {number} {number} ..."
+        "Given any number of arguments that are integers or floats, the first argument acts as the base number. "
+        "Divides the base number by all other arguments in order of input. (Rounded to nearest "
+        "integer)\n\n**Usage:**\n&divide {number} {number} ... "
     )
-    async def divide(self, ctx, num=0.0, *args):
-        if len(args) == 0:
-            await ctx.send("You didn't input anything to divide.")
+    async def divide(self, ctx, num=None, *args):
+        # Check if any arguments
+        if num == None:
+            await self.embed(ctx, "You didn't input anything to divide.")
             return
+        try:
+            # Convert base number to float
+            num = float(num)
+        # If inconvertible send back command fail
+        except ValueError:
+            await self.embed(ctx, "First argument is not a number.")
+            return
+        # Divide base number by each argument
         for number in args:
             try:
                 num = num / float(number)
-                print(num)
+            # if argument inconvertible send back command fail
             except ValueError:
-                await ctx.send(
-                    'There is something that is not a number in here.')
+                await self.embed(
+                    ctx, "There is something that is not a number in here.")
                 return
+        # Round to nearest int, convert to int and send back
         num = int(round(num))
-        await ctx.send('Quotient: {0}'.format(num))
+        await self.embed(ctx, str(num))
 
     # find rational roots for a polynomial with integral coefficients
     @bot.command(
@@ -171,7 +257,9 @@ class Mathy(commands.Cog):
         brief=
         "Find rational roots for a polynomial with integral coefficients.",
         description=
-        "Given a polynomial of any length and size, find the rational roots of it with the remaining polynomial returned as well. If the roots cannot be found, an empty list will be returned with the remaining polynomial matching the input.\n\n**Usage:**\n&find_roots {{coefficient}{variable letter}{exponent}} {operation} ..."
+        "Given a polynomial of any length and size, find the rational roots of it with the remaining polynomial "
+        "returned as well. If the roots cannot be found, an empty list will be returned with the remaining polynomial "
+        "matching the input.\n\n**Usage:**\n&find_roots {{coefficient}{variable letter}{exponent}} {operation} ... "
     )
     async def find_roots(self, ctx, *args):
         polynomial = ''.join(args)
@@ -284,7 +372,7 @@ class Mathy(commands.Cog):
         # the index indicates the power
         # value in list would be the coefficients
         # only print the remaining polynomial if len(polynomial) > 2
-        format_root = "Roots: "
+        format_root = "**Roots:** "
         ftt = 0
         for frac in roots:
             holder = frac.as_integer_ratio()
@@ -302,7 +390,7 @@ class Mathy(commands.Cog):
                 format_root = format_root + ', ' + holder
 
         if len(polynomial) > 2:
-            poly_rem = "\nRemaining Polynomial: "
+            poly_rem = "\n\n**Remaining Polynomial:** "
             ftt = 0
             counter = 0
             for poly in polynomial:
@@ -314,10 +402,9 @@ class Mathy(commands.Cog):
                     poly_rem += ' + ' + holder
                 counter += 1
             format_root = format_root + poly_rem
-
-        await ctx.send(format_root)
+        await self.embed(ctx, format_root)
         return
 
 
-def setup(bot):
-    bot.add_cog(Mathy(bot))
+async def setup(bot):
+    await bot.add_cog(Mathy(bot))
