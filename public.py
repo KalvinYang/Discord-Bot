@@ -72,11 +72,7 @@ class Public(commands.Cog):
         "@username}\n&talk {username#1234} "
     )
     async def talk(self, ctx, user, msg=""):
-        try:
-            all_members = ctx.guild.members
-        except:
-            await self.embed(ctx, "Command Failed: Cannot call command outside of guilds.")
-            return
+        all_members = ctx.guild.members
         print('user: ' + user)
         if user == ctx.author.name or user == str(ctx.author) or user == ctx.author.mention:
             await self.embed(ctx, "Why are you sending a message to yourself? Anyways, here's your message.\n\n" + msg,
