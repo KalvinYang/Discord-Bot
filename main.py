@@ -59,7 +59,7 @@ bot = commands.Bot(intents=Intents, command_prefix='&')
 # my_secret = os.environ['token']
 
 # Starts up extensions i.e. our commands
-startup_extensions = ["private", "public", "music", "mathy"]
+startup_extensions = ["private", "public", "music", "mathy", "gametesting"]
 
 # Removal of help command, this is so that a custom help command can be built.
 bot.remove_command("help")
