@@ -396,5 +396,5 @@ class Mathy(commands.Cog):
         return
 
 
-async def setup(bot):
-    await bot.add_cog(Mathy(bot))
+def setup(bot):
+    bot.add_cog(Mathy(bot))
