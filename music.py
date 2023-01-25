@@ -384,5 +384,5 @@ class Music(commands.Cog):
         self.vc = channel
 
 
-async def setup(bot):
-    await bot.add_cog(Music(bot))
+def setup(bot):
+    bot.add_cog(Music(bot))
