@@ -138,5 +138,5 @@ class Private(commands.Cog):
         await self.embed(ctx,"Messages deleted.")
 
 
-async def setup(bot):
-    await bot.add_cog(Private(bot))
+def setup(bot):
+    bot.add_cog(Private(bot))
