@@ -1,22 +1,23 @@
-#Discord imports allow for easy access to connection to discord and making commands.
+# Discord imports allow for easy access to connection to discord and making commands.
 import discord
 from discord.ext import commands
 import random
 import asyncio
 
-#Intents allow for the usage of information within their classes.
+# Intents allow for the usage of information within their classes.
 Intents = discord.Intents.default().all()
 Intents.members = True
 Intents.presences = True
 Intents.guilds = True
 
-#Bot prefix setup and set the bot intentions to those setup above.
+# Bot prefix setup and set the bot intentions to those setup above.
 bot = commands.Bot(intents=Intents, command_prefix='&')
 
-#Removal of help command, this is so that a custom help command can be built.
+# Removal of help command, this is so that a custom help command can be built.
 bot.remove_command("help")
 
-#List of messages, currently from the first build, thinking of perhaps using a database for commands and messages, but will currently stick to this to allow code to continue to work for now.
+# List of messages, currently from the first build, thinking of perhaps using a database for commands and messages,
+# but will currently stick to this to allow code to continue to work for now.
 messages = [
     'Hello there!', "Hey what's up?", 'How are you doing?', 'Nice to meet you!'
 ]
@@ -27,12 +28,12 @@ class Public(commands.Cog):
         self.bot = bot
         self.ecolor = 0x3498db
 
-    #Embedding for message ui looking better, automatically set to sending to origin channel
+    # Embedding for message ui looking better, automatically set to sending to origin channel
     async def embed(self, ctx, message="", sendto=1, user=None):
-        #Take cog color (self.ecolor) as color, and command name as title
+        # Take cog color (self.ecolor) as color, and command name as title
         emb = discord.Embed(color=self.ecolor,
                             title=str(ctx.command).capitalize() + " Results:")
-        #Sets the user that called command as author by taking their name and pfp
+        # Sets the user that called command as author by taking their name and pfp
         emb.set_author(name=ctx.author.display_name,
                        icon_url=ctx.author.avatar)
         # Set message of embed
@@ -71,11 +72,7 @@ class Public(commands.Cog):
         "@username}\n&talk {username#1234} "
     )
     async def talk(self, ctx, user, msg=""):
-        try:
-            all_members = ctx.guild.members
-        except:
-            await self.embed(ctx, "Command Failed: Cannot call command outside of guilds.")
-            return
+        all_members = ctx.guild.members
         print('user: ' + user)
         if user == ctx.author.name or user == str(ctx.author) or user == ctx.author.mention:
             await self.embed(ctx, "Why are you sending a message to yourself? Anyways, here's your message.\n\n" + msg,
@@ -114,26 +111,30 @@ class Public(commands.Cog):
         num = await self.randomnumber(ctx, num)
         await self.saynumber(ctx, num)
 
-    #Command randomnum, chooses a random number from 0 to 10 by default. Chooses random number between 0 and indicated otherwise.
+    # Command randomnum, chooses a random number from 0 to 10 by default. Chooses random number between 0 and
+    # indicated otherwise.
     @bot.command(
         pass_context=True,
         aliases=["randnum", "rn", "randomnum"],
         brief="Get a random number",
         description=
-        "Given a number, or default setting of 10, randomly choose from 0 to given number, then send that number to the original channel.\n\n**Usage:**\n&randomnumber {number}\n&randomnumber"
+        "Given a number, or default setting of 10, randomly choose from 0 to given number, then send that number to "
+        "the original channel.\n\n**Usage:**\n&randomnumber {number}\n&randomnumber "
     )
     async def randomnumber(self, ctx, num=10):
         somenumber = random.randrange(num)
-        await self.embed(ctx,'Number: {0}'.format(somenumber))
+        await self.embed(ctx, 'Number: {0}'.format(somenumber))
         return somenumber
 
-    #Command saynum, sends separate messages counting from 1 to indicated number, so long as it is within 50 to minimize clutter.
+    # Command saynum, sends separate messages counting from 1 to indicated number, so long as it is within 50 to
+    # minimize clutter.
     @bot.command(
         pass_context=True,
         aliases=["sn", "sayn", "saynum"],
         brief="Counts to given number",
         description=
-        "Given a number, send messages from 1 to given number to the original channel, if no number is given, default to 0. Minimum amount being 0 and maximum being 50.\n\n**Usage:**\n&saynumber {number}\n&saynumber"
+        "Given a number, send messages from 1 to given number to the original channel, if no number is given, "
+        "default to 0. Minimum amount being 0 and maximum being 50.\n\n**Usage:**\n&saynumber {number}\n&saynumber "
     )
     async def saynumber(self, ctx, num=0):
         if num <= 0:

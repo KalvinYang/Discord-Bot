@@ -1,4 +1,4 @@
-z#Imports
+#Imports
 import discord
 import asyncio
 import time
@@ -384,5 +384,5 @@ class Music(commands.Cog):
         self.vc = channel
 
 
-def setup(bot):
-    bot.add_cog(Music(bot))
+async def setup(bot):
+    await bot.add_cog(Music(bot))
