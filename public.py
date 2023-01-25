@@ -29,10 +29,14 @@ class Public(commands.Cog):
         self.ecolor = 0x3498db
 
     # Embedding for message ui looking better, automatically set to sending to origin channel
-    async def embed(self, ctx, message="", sendto=1, user=None):
+    async def embed(self, ctx, message="", sendto=1, user=None, bot_level=""):
         # Take cog color (self.ecolor) as color, and command name as title
-        emb = discord.Embed(color=self.ecolor,
-                            title=str(ctx.command).capitalize() + " Results:")
+        if bot_level == "":
+            emb = discord.Embed(color=self.ecolor,
+                                title=str(ctx.command).capitalize() + " Results:")
+        else:
+            emb = discord.Embed(color=self.ecolor,
+                                title=bot_level)
         # Sets the user that called command as author by taking their name and pfp
         emb.set_author(name=ctx.author.display_name,
                        icon_url=ctx.author.avatar)
@@ -48,7 +52,7 @@ class Public(commands.Cog):
         elif sendto == 3:
             await ctx.channel.send(embed=emb)
         # Send to specified user
-        elif sendto == 4 and not user == None:
+        elif sendto == 4 and not user is None:
             try:
                 await user.send(embed=emb)
             except:
