@@ -59,7 +59,7 @@ bot = commands.Bot(intents=Intents, command_prefix='&')
 # my_secret = os.environ['token']
 
 # Starts up extensions i.e. our commands
-startup_extensions = ["private", "public", "music", "mathy", "gametesting"]
+startup_extensions = ["private", "public", "music", "mathy", "gametesting", "monsterbook"]
 
 # Removal of help command, this is so that a custom help command can be built.
 bot.remove_command("help")
@@ -205,8 +205,7 @@ async def help(ctx, searchcommand=""): \
                 await ctx.send('{0} Check Your DMs'.format(ctx.author.mention))
                 await ctx.author.send(embed=emb)
                 try:
-                    await ctx.message.delete()
-                    return
+                    return await ctx.message.delete()
                 except discord.Forbidden:
                     return
         # Nothing matched 'searchcommand' send

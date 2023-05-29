@@ -80,9 +80,7 @@ class Private(commands.Cog):
             guild_members = guild_members + str(
                 count) + ': ' + member.name + '\n'
             count = count + 1
-        await self.embed(ctx,
-                         'List of guild members in {0}: \n'.format(the_guild) +
-                         guild_members, 2)
+        await self.embed(ctx, 'List of guild members in {0}: \n'.format(the_guild) + guild_members, 2)
 
     # Command clearbot, clears all messages from the bot within dms.
     @bot.command(pass_context=True, aliases=["cbot", "clb"], brief="Delete bot Dms.",
@@ -131,18 +129,14 @@ class Private(commands.Cog):
             num = int(num)
         except ValueError:
             if num == 'All' or num == 'all' or num == 'ALL':
-                await self.clear(ctx)
+                return await self.clear(ctx)
             else:
-                await self.embed(ctx, "That's not a valid input.")
-            return
+                return await self.embed(ctx, "Command Failed: That's not a valid input.")
 
         if num > 50:
-            await self.embed(ctx,
-                             'Too many messages to delete, please keep it under 50.')
-            return
+            return await self.embed(ctx, 'Command Failed: Too many messages to delete, please keep it under 50.')
         elif num <= 0:
-            await self.embed(ctx, 'Choose a number greater than 0.')
-            return
+            return await self.embed(ctx, 'Command Failed: Choose a number greater than 0.')
 
         if id == "":
             await ctx.channel.purge(limit=num)

@@ -5,6 +5,7 @@ import time
 import datetime
 from discord.ext import commands
 from youtube_dl import YoutubeDL
+import ffmpeg
 
 # Intents allow for the usage of information within their classes.
 Intents = discord.Intents.default().all()
@@ -74,10 +75,10 @@ class Music(commands.Cog):
     # Makes the bot leave the voice channel if checks are false after a short amount of time
     async def autoleave(self, ctx):
         # If checks true, wait
-        while self.is_playing == True or self.is_paused == True:
+        while self.is_playing is True or self.is_paused is True:
             await asyncio.sleep(20)
         # If not in voice channel, do nothing
-        if self.vc == None:
+        if self.vc is None:
             return
         # Otherwise reset voice channel variables, then leave channel
         self.resetvoice()
@@ -238,7 +239,7 @@ class Music(commands.Cog):
     )
     async def play_music(self, ctx, url):
 
-        if self.vc == None:
+        if self.vc is None:
             await self.join(ctx)
 
         await self.queue(ctx, url)
@@ -296,7 +297,6 @@ class Music(commands.Cog):
         if self.samechannel(ctx):
             if not self.speakingnow(ctx):
                 await self.embed(ctx, "Not playing anything.")
-                return
             elif self.is_paused:
                 await self.embed(ctx, "Already paused.")
             else:
@@ -317,7 +317,6 @@ class Music(commands.Cog):
         if self.samechannel(ctx):
             if not self.speakingnow(ctx):
                 await self.embed(ctx, "Not playing anything.")
-                return
             elif self.is_playing:
                 await self.embed(ctx, "Already playing.")
             else:
@@ -380,14 +379,13 @@ class Music(commands.Cog):
     )
     async def join(self, ctx):
 
-        if ctx.author.voice == None:
-            await self.embed(ctx, "You aren't in a channel.")
-            return
+        if ctx.author.voice is None:
+            return await self.embed(ctx, "Command Failed: You aren't in a channel.")
 
         # joins the discord vc
         channel = ctx.author.voice.channel
 
-        if self.vc == None:
+        if self.vc is None:
             await channel.connect()
 
         elif not discord.utils.get(self.bot.voice_clients,

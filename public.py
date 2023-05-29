@@ -79,26 +79,22 @@ class Public(commands.Cog):
         all_members = ctx.guild.members
         print('user: ' + user)
         if user == ctx.author.name or user == str(ctx.author) or user == ctx.author.mention:
-            await self.embed(ctx, "Why are you sending a message to yourself? Anyways, here's your message.\n\n" + msg,
-                             2)
-            return
+            return await self.embed(ctx, "Why are you sending a message to yourself? Anyways, here's your message.\n\n"
+                                    + msg, 2)
         for member in all_members:
             print('member name: ' + member.name)
             if member.name == user or str(member) == user or member.mention == user:
                 if member.bot:
-                    await self.embed(ctx, "This is a bot, cannot send message them.")
-                    return
+                    return await self.embed(ctx, "This is a bot, cannot send message them.")
                 if msg == "":
                     new_message = random.choice(messages)
                 else:
                     new_message = msg
                 await self.embed(ctx, ctx.author.name + ' to ' + member.name +
                                  ':\n\n' + new_message, 4, member)
-                await self.embed(ctx, 'You to ' + member.name + ':\n\n' +
-                                 new_message, 2)
-                return
-        await self.embed(ctx, "This person does not exist in this server.")
-        return
+                return await self.embed(ctx, 'You to ' + member.name + ':\n\n' +
+                                        new_message, 2)
+        return await self.embed(ctx, "This person does not exist in this server.")
 
     #
 
@@ -142,11 +138,9 @@ class Public(commands.Cog):
     )
     async def saynumber(self, ctx, num=0):
         if num <= 0:
-            await self.embed(ctx, 'Cannot count to that number.', 3)
-            return
+            return await self.embed(ctx, 'Cannot count to that number.', 3)
         elif num > 50:
-            await self.embed(ctx, 'Max count limit is 50.', 3)
-            return
+            return await self.embed(ctx, 'Max count limit is 50.', 3)
         for number in range(num):
             await asyncio.sleep(0.75)
             await self.embed(ctx, '{0}'.format(number + 1), 3)
@@ -165,18 +159,14 @@ class Public(commands.Cog):
     )
     async def guessnumber(self, ctx, num=-1, auto='no'):
         if num < 0 or num > 10:
-            await self.embed(ctx, 'Not a valid guess.', 3)
-            return
+            return await self.embed(ctx, 'Not a valid guess.', 3)
         if auto == 'yes' or auto == 'y' or auto == 'Y' or auto == 'YES' or auto == 'Yes':
             counter = 0
             while True:
                 somenumber = random.randrange(11)
                 counter += 1
                 if somenumber == num:
-                    await self.embed(ctx,
-                                     'You took {0} guess(es) to get it right.'.format(
-                                         counter))
-                    return
+                    return await self.embed(ctx, 'You took {0} guess(es) to get it right.'.format(counter))
         somenumber = random.randrange(11)
         print('guess: {0}'.format(num))
         print('value: {0}'.format(somenumber))
