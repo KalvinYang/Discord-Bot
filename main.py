@@ -143,7 +143,7 @@ async def help(ctx, searchcommand=""): \
                 the_value = help_command
                 count = 1
             # Spacing between cogs
-            emb.add_field(name=the_value, value="\u200b", inline=False)
+            emb.add_field(name=the_value, value="\u200b", inline=True)
             # Get cog object, and cog commands
             cog_name = cog.capitalize()
             cog_object = bot.get_cog(cog_name)

@@ -2,6 +2,7 @@
 import discord
 from discord.ext import commands
 import asyncio
+from embedder import Embedder
 
 # Intents allow for the usage of information within their classes.
 Intents = discord.Intents.default().all()
@@ -25,39 +26,6 @@ class Private(commands.Cog):
         self.bot = bot
         self.ecolor = 0x992d22
 
-        # Embedding for message ui looking better, automatically set to sending to origin channel
-
-    async def embed(self, ctx, message="", sendto=1, user=None, bot_level=""):
-        # Take cog color (self.ecolor) as color, and command name as title
-        if bot_level == "":
-            emb = discord.Embed(color=self.ecolor,
-                                title=str(ctx.command).capitalize() + " Results:")
-        else:
-            emb = discord.Embed(color=self.ecolor,
-                                title=bot_level)
-        # Sets the user that called command as author by taking their name and pfp
-        emb.set_author(name=ctx.author.display_name,
-                       icon_url=ctx.author.avatar)
-        # Set message of embed
-        emb.description = message
-        # Send to origin channel
-        if sendto == 1:
-            await ctx.send(embed=emb)
-        # Send to user direct messages
-        elif sendto == 2:
-            await ctx.author.send(embed=emb)
-        # Send to origin channel alternate
-        elif sendto == 3:
-            await ctx.channel.send(embed=emb)
-        # Send to specified user
-        elif sendto == 4 and not user is None:
-            try:
-                await user.send(embed=emb)
-            except:
-                # If no such user, send back command fail
-                emb.description = "An error occurred."
-                await ctx.author.send(embed=emb)
-
     # Command allmembers, prints all members across all server that the bot is present in.
     @bot.command(pass_context=True, aliases=["allmem", "am"], brief="In console, sends users from each server.",
                  description="In console, sends users and the guild they are from, across all servers the bot is "
@@ -66,7 +34,7 @@ class Private(commands.Cog):
         for guild in self.bot.guilds:
             for member in guild.members:
                 print(guild, member)
-        await self.embed(ctx, "See console.")
+        await Embedder.embed(ctx, "See console.")
 
     # Command members, a subset command of allmembers made into its' own that sends a list of all users in a server
     # to the command caller.
@@ -80,7 +48,7 @@ class Private(commands.Cog):
             guild_members = guild_members + str(
                 count) + ': ' + member.name + '\n'
             count = count + 1
-        await self.embed(ctx, 'List of guild members in {0}: \n'.format(the_guild) + guild_members, 2)
+        await Embedder.embed(ctx, 'List of guild members in {0}: \n'.format(the_guild) + guild_members, 2)
 
     # Command clearbot, clears all messages from the bot within dms.
     @bot.command(pass_context=True, aliases=["cbot", "clb"], brief="Delete bot Dms.",
@@ -98,7 +66,7 @@ class Private(commands.Cog):
             for msg in messageholder:
                 await asyncio.sleep(0.9)
                 await msg.delete()
-            await self.embed(ctx, "DMs deleted.", 2)
+            await Embedder.embed(ctx, "DMs deleted.", 2)
 
     # Command clear, deletes all messages from a channel in one go.
     @bot.command(pass_context=True, aliases=["cl"], brief="Clear a text channel.",
@@ -109,7 +77,7 @@ class Private(commands.Cog):
         async for message in ctx.channel.history(limit=None):
             count += 1
         await ctx.channel.purge(limit=count)
-        await self.embed(ctx, "All channel messages have been deleted.")
+        await Embedder.embed(ctx, "All channel messages have been deleted.")
 
     # Command purge, deleting the number of messages dictated in field 'num'. 'All' used in command clear instead,
     # 'my' replaced with targetted deletion. Limit of purge is 50, with the bot only being able to purge messages
@@ -131,12 +99,12 @@ class Private(commands.Cog):
             if num == 'All' or num == 'all' or num == 'ALL':
                 return await self.clear(ctx)
             else:
-                return await self.embed(ctx, "Command Failed: That's not a valid input.")
+                return await Embedder.embed(ctx, "Command Failed: That's not a valid input.")
 
         if num > 50:
-            return await self.embed(ctx, 'Command Failed: Too many messages to delete, please keep it under 50.')
+            return await Embedder.embed(ctx, 'Command Failed: Too many messages to delete, please keep it under 50.')
         elif num <= 0:
-            return await self.embed(ctx, 'Command Failed: Choose a number greater than 0.')
+            return await Embedder.embed(ctx, 'Command Failed: Choose a number greater than 0.')
 
         if id == "":
             await ctx.channel.purge(limit=num)
@@ -151,7 +119,7 @@ class Private(commands.Cog):
                     await message.delete()
                     if counter == num:
                         break
-        await self.embed(ctx, "Messages deleted.")
+        await Embedder.embed(ctx, "Messages deleted.")
 
 
 async def setup(bot):

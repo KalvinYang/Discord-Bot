@@ -6,6 +6,7 @@ import datetime
 from discord.ext import commands
 from youtube_dl import YoutubeDL
 import ffmpeg
+from embedder import Embedder
 
 # Intents allow for the usage of information within their classes.
 Intents = discord.Intents.default().all()
@@ -101,38 +102,6 @@ class Music(commands.Cog):
             return True
         return False
 
-    # Embedding for message ui looking better, automatically set to sending to origin channel
-    async def embed(self, ctx, message="", sendto=1, user=None, bot_level=""):
-        # Take cog color (self.ecolor) as color, and command name as title
-        if bot_level == "":
-            emb = discord.Embed(color=self.ecolor,
-                                title=str(ctx.command).capitalize() + " Results:")
-        else:
-            emb = discord.Embed(color=self.ecolor,
-                                title=bot_level)
-        # Sets the user that called command as author by taking their name and pfp
-        emb.set_author(name=ctx.author.display_name,
-                       icon_url=ctx.author.avatar)
-        # Set message of embed
-        emb.description = message
-        # Send to origin channel
-        if sendto == 1:
-            await ctx.send(embed=emb)
-        # Send to user direct messages
-        elif sendto == 2:
-            await ctx.author.send(embed=emb)
-        # Send to origin channel alternate
-        elif sendto == 3:
-            await ctx.channel.send(embed=emb)
-        # Send to specified user
-        elif sendto == 4 and not user is None:
-            try:
-                await user.send(embed=emb)
-            except:
-                # If no such user, send back command fail
-                emb.description = "An error occurred."
-                await ctx.author.send(embed=emb)
-
     # ---------------------------------------
 
     @bot.command(
@@ -147,7 +116,7 @@ class Music(commands.Cog):
     async def skip(self, ctx):
         if self.samechannel(ctx):
             self.to_play.stop()
-            await self.embed(ctx, "Skipped song.")
+            await Embedder.embed(ctx, "Skipped song.")
 
     @bot.command(
         pass_context=True,
@@ -157,7 +126,7 @@ class Music(commands.Cog):
         "If there is a current song it will say the title of it.\n\n**Usage:**\n&current_song"
     )
     async def current_song(self, ctx):
-        await self.embed(ctx, "Current song: " + self.current_song)
+        await Embedder.embed(ctx, "Current song: " + self.current_song)
 
     @bot.command(
         pass_context=True,
@@ -172,7 +141,7 @@ class Music(commands.Cog):
         for i in self.titles:
             count = count + 1
             the_list = the_list + "**" + str(count) + ":** " + i + '\n'
-        await self.embed(ctx, the_list)
+        await Embedder.embed(ctx, the_list)
 
     @bot.command(
         pass_context=True,
@@ -183,9 +152,9 @@ class Music(commands.Cog):
         count = 0
         count = self.count_queue()
         if count == 1:
-            await self.embed(ctx, str(count + 'item in queue.'))
+            await Embedder.embed(ctx, str(count + 'item in queue.'))
         else:
-            await self.embed(ctx, str(count) + ' items in queue.')
+            await Embedder.embed(ctx, str(count) + ' items in queue.')
 
     @bot.command(
         pass_context=True,
@@ -202,7 +171,7 @@ class Music(commands.Cog):
             self.titles.append(holder.get('title'))
             self.music_queue.append(song)
             print(self.titles)
-            await self.embed(ctx, "Your song has been queued.")
+            await Embedder.embed(ctx, "Your song has been queued.")
 
     @bot.command(
         pass_context=True,
@@ -222,7 +191,7 @@ class Music(commands.Cog):
                                                  guild=ctx.guild)
                 self.next_song(ctx)
             else:
-                await self.embed(
+                await Embedder.embed(
                     ctx,
                     "Currently playing something, or something is paused.")
             await self.autoleave(ctx)
@@ -245,7 +214,7 @@ class Music(commands.Cog):
         await self.queue(ctx, url)
 
         if self.speakingnow(ctx):
-            await self.embed(
+            await Embedder.embed(
                 ctx, "There is a song playing already, queuing song instead.")
         else:
             self.current_song = self.titles.pop(-1)
@@ -257,7 +226,7 @@ class Music(commands.Cog):
             self.is_playing = True
             self.to_play.play(discord.FFmpegPCMAudio(song),
                               after=lambda e: self.next_song(ctx))
-            await self.embed(ctx, "Playing now.")
+            await Embedder.embed(ctx, "Playing now.")
             await self.autoleave(ctx)
 
     @bot.command(
@@ -296,14 +265,14 @@ class Music(commands.Cog):
     async def pause(self, ctx):
         if self.samechannel(ctx):
             if not self.speakingnow(ctx):
-                await self.embed(ctx, "Not playing anything.")
+                await Embedder.embed(ctx, "Not playing anything.")
             elif self.is_paused:
-                await self.embed(ctx, "Already paused.")
+                await Embedder.embed(ctx, "Already paused.")
             else:
                 self.to_play.pause()
                 self.is_paused = True
                 self.is_playing = False
-                await self.embed(ctx, "Paused.")
+                await Embedder.embed(ctx, "Paused.")
 
     @bot.command(
         pass_context=True,
@@ -316,14 +285,14 @@ class Music(commands.Cog):
     async def resume(self, ctx):
         if self.samechannel(ctx):
             if not self.speakingnow(ctx):
-                await self.embed(ctx, "Not playing anything.")
+                await Embedder.embed(ctx, "Not playing anything.")
             elif self.is_playing:
-                await self.embed(ctx, "Already playing.")
+                await Embedder.embed(ctx, "Already playing.")
             else:
                 self.to_play.resume()
                 self.is_playing = True
                 self.is_paused = False
-                await self.embed(ctx, "Resumed.")
+                await Embedder.embed(ctx, "Resumed.")
 
     @bot.command(
         pass_context=True,
@@ -335,7 +304,7 @@ class Music(commands.Cog):
         if self.samechannel(ctx):
             self.music_queue.clear()
             self.titles.clear()
-            await self.embed(ctx, "Queue cleared.")
+            await Embedder.embed(ctx, "Queue cleared.")
 
     @bot.command(
         pass_context=True,
@@ -349,7 +318,7 @@ class Music(commands.Cog):
             await self.clear_q(ctx)
             self.current_song = ""
             await self.skip(ctx)
-            await self.embed(ctx, "Stopped.")
+            await Embedder.embed(ctx, "Stopped.")
 
     @bot.command(
         pass_context=True,
@@ -365,7 +334,7 @@ class Music(commands.Cog):
         channel = ctx.guild.voice_client
         await channel.disconnect()
         self.resetvoice()
-        await self.embed(ctx, "Disconnected.")
+        await Embedder.embed(ctx, "Disconnected.")
 
     # Command Join, Allows the Roomz Bot to join a voice channel from where the user is already in when the command
     # is called
@@ -380,7 +349,7 @@ class Music(commands.Cog):
     async def join(self, ctx):
 
         if ctx.author.voice is None:
-            return await self.embed(ctx, "Command Failed: You aren't in a channel.")
+            return await Embedder.embed(ctx, "Command Failed: You aren't in a channel.")
 
         # joins the discord vc
         channel = ctx.author.voice.channel
@@ -394,7 +363,7 @@ class Music(commands.Cog):
             await channel.connect()
 
         else:
-            await self.embed(ctx, 'I am already here!')
+            await Embedder.embed(ctx, 'I am already here!')
 
         self.vc = channel
 

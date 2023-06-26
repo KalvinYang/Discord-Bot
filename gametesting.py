@@ -2,6 +2,7 @@
 import discord
 from discord.ext import commands
 import sqlite3
+from embedder import Embedder
 
 # Intents allow for the usage of information within their classes.
 Intents = discord.Intents.default().all()
@@ -22,50 +23,18 @@ c.execute('''CREATE TABLE IF NOT EXISTS users(username TEXT, level INT, xp INT)'
 class Gametesting(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.ecolor = 0xad1457
-
-    # Embedding for message ui looking better, automatically set to sending to origin channel
-    async def embed(self, ctx, message="", sendto=1, user=None, bot_level=""):
-        # Take cog color (self.ecolor) as color, and command name as title
-        if bot_level == "":
-            emb = discord.Embed(color=self.ecolor,
-                                title=str(ctx.command).capitalize() + " Results:")
-        else:
-            emb = discord.Embed(color=self.ecolor,
-                                title=bot_level)
-        # Sets the user that called command as author by taking their name and pfp
-        emb.set_author(name=ctx.author.display_name,
-                       icon_url=ctx.author.avatar)
-        # Set message of embed
-        emb.description = message
-        # Send to origin channel
-        if sendto == 1:
-            await ctx.send(embed=emb)
-        # Send to user direct messages
-        elif sendto == 2:
-            await ctx.author.send(embed=emb)
-        # Send to origin channel alternate
-        elif sendto == 3:
-            await ctx.channel.send(embed=emb)
-        # Send to specified user
-        elif sendto == 4 and not user is None:
-            try:
-                await user.send(embed=emb)
-            except:
-                # If no such user, send back command fail
-                emb.description = "An error occurred."
-                await ctx.author.send(embed=emb)
+        self.ecolor = 0x11806a
 
     # Checks for valid numerical indexes
     async def isint(self, ctx, index):
         try:
             index = int(index)
             if index < 1:
-                await self.embed(ctx, "Command Failed: Please insert an index greater then 0.", sendto=2)
+                await Embedder.embed(ctx, "Command Failed: Please insert an index greater then 0.", sendto=2)
                 return False
             return True
         except TypeError or ValueError:
-            await self.embed(ctx, "Command Failed: Index invalid.")
+            await Embedder.embed(ctx, "Command Failed: Index invalid.")
             return False
 
     # Checks for valid indexes for messages in database
@@ -75,20 +44,20 @@ class Gametesting(commands.Cog):
         try:
             index = int(index)
         except ValueError:
-            await self.embed(ctx, "Command Failed: Invalid index.", sendto=2)
+            await Embedder.embed(ctx, "Command Failed: Invalid index.", sendto=2)
             return 0
         if all_messages is None:
-            await self.embed(ctx, "Command Failed: No messages found.", sendto=2)
+            await Embedder.embed(ctx, "Command Failed: No messages found.", sendto=2)
             return 0
         elif len(all_messages) < (index - 1):
-            await self.embed(ctx, "Command Failed: index outside of amount of saved messages.", sendto=2)
+            await Embedder.embed(ctx, "Command Failed: index outside of amount of saved messages.", sendto=2)
             return 0
         try:
             msg = all_messages[index - 1]
             msg = str(msg[0])
             return msg
         except IndexError:
-            await self.embed(ctx, "Command Failed: Index outside of range.", sendto=2)
+            await Embedder.embed(ctx, "Command Failed: Index outside of range.", sendto=2)
             return 0
 
     # When bot is ready add everyone to database at level 0
@@ -106,6 +75,7 @@ class Gametesting(commands.Cog):
     # When someone messages a channel, add xp to them, or level them up in bot database
     @commands.Cog.listener()
     async def on_message(self, message_1):
+        print(message_1)
         usern = str(message_1.author.name)
         c.execute("SELECT level, xp FROM users WHERE username=?", (usern,))
         user = c.fetchone()
@@ -115,7 +85,8 @@ class Gametesting(commands.Cog):
         elif user[0] == 0:
             db.execute("UPDATE users SET level=1 WHERE username=?", (usern,))
             db.commit()
-            await self.embed(message_1, "Level: 1\nXp: 0", sendto=3, bot_level="You Leveled Up!")
+            await Embedder.embed(message_1, "Level: 1\nXp: 0", sendto=3, bot_level="You Leveled Up!",
+                                 ecolor=self.ecolor)
         else:
             xp = user[1]
             xp += 1
@@ -125,8 +96,8 @@ class Gametesting(commands.Cog):
                 db.execute("UPDATE users SET xp=0 , level=? WHERE username=?",
                            (level, usern,))
                 db.commit()
-                await self.embed(message_1, "Level: {0}\nXp: 0".format(str(level)), sendto=3,
-                                 bot_level="You Leveled Up!")
+                await Embedder.embed(message_1, "Level: {0}\nXp: 0".format(str(level)), sendto=3,
+                                     bot_level="You Leveled Up!", ecolor=self.ecolor)
             else:
                 db.execute("UPDATE users SET xp=? WHERE username=?", (xp, usern,))
                 db.commit()
@@ -142,9 +113,9 @@ class Gametesting(commands.Cog):
         usern = str(ctx.author)
         c.execute("SELECT level, xp FROM users WHERE username=?", (usern,))
         level_xp = c.fetchone()
-        await self.embed(ctx, "Level: {0}\nXp: {1}".format(str(level_xp[0]), str(level_xp[1])),
-                         bot_level="Your Current "
-                                   "Level:")
+        await Embedder.embed(ctx, "Level: {0}\nXp: {1}".format(str(level_xp[0]), str(level_xp[1])),
+                             bot_level="Your Current "
+                                       "Level:")
 
     # Takes a string and saves it into database along with the guild, channel and user it came from.
     @bot.command(pass_context=True,
@@ -161,7 +132,7 @@ class Gametesting(commands.Cog):
         db.execute("INSERT INTO main (guild_id,msg,channel_id,author) VALUES(?,?,?,?)",
                    (guild, msg, str(ctx.channel), str(ctx.author)))
         db.commit()
-        return await self.embed(ctx, "Your message has been saved.", 2)
+        return await Embedder.embed(ctx, "Your message has been saved.", 2)
 
     # Finds the indicated saved message in the database and deletes it from memory
     @bot.command(pass_context=True,
@@ -178,7 +149,7 @@ class Gametesting(commands.Cog):
             return
         db.execute("DELETE FROM main WHERE msg=?", (msg,))
         db.commit()
-        return await self.embed(ctx, "Message Deleted.", 2)
+        return await Embedder.embed(ctx, "Message Deleted.", 2)
 
     # Gathers all saved messages from the origin user and send back list of messages
     @bot.command(pass_context=True,
@@ -193,7 +164,7 @@ class Gametesting(commands.Cog):
         for row in c.execute("SELECT guild_id, msg FROM main WHERE author=?", (str(ctx.author),)):
             count += 1
             res += str(count) + ". From: " + str(row[0]) + " | Message: " + str(row[1]) + '\n'
-        return await self.embed(ctx, res, 2, )
+        return await Embedder.embed(ctx, res, 2, )
 
     # From the list of messages in "mymessage" command, send the indicated message to the indicated user as long as they
     # are in the guild that the origin user called it in
@@ -208,27 +179,27 @@ class Gametesting(commands.Cog):
         if not await self.isint(ctx, index):
             return
         elif user == "":
-            return await self.embed(ctx, "Command Failed: Please indicate a user you want to send this message to.",
-                                    sendto=2)
+            return await Embedder.embed(ctx, "Command Failed: Please indicate a user you want to send this message to.",
+                                        sendto=2)
         msg = await self.msgcheck(ctx, index)
         if msg == 0:
             return
         try:
             all_members = ctx.guild.members
         except:
-            return await self.embed(ctx, "Command Failed: Cannot call command outside of guilds.")
+            return await Embedder.embed(ctx, "Command Failed: Cannot call command outside of guilds.")
         if user == ctx.author.name or user == str(ctx.author) or user == ctx.author.mention:
-            return await self.embed(ctx,
-                                    "Why are you sending a message to yourself? Anyways, here's your message.\n\n" + msg,
-                                    2)
+            return await Embedder.embed(ctx,
+                                        "Why are you sending a message to yourself? Anyways, here's your message.\n\n" + msg,
+                                        2)
         for member in all_members:
             if member.name == user or str(member) == user or member.mention == user:
                 if member.bot:
-                    return await self.embed(ctx, "This is a bot, cannot send message them.", sendto=2)
-                await self.embed(ctx, ctx.author.name + ' to ' + member.name +
-                                 ':\n\n' + msg, 4, member)
-                return await self.embed(ctx, 'You to ' + member.name + ':\n\n' + msg, 2)
-        await self.embed(ctx, "This person does not exist in this server.")
+                    return await Embedder.embed(ctx, "This is a bot, cannot send message them.", sendto=2)
+                await Embedder.embed(ctx, ctx.author.name + ' to ' + member.name +
+                                     ':\n\n' + msg, 4, member)
+                return await Embedder.embed(ctx, 'You to ' + member.name + ':\n\n' + msg, 2)
+        await Embedder.embed(ctx, "This person does not exist in this server.")
 
 
 async def setup(bot):

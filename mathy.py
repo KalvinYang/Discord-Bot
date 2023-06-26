@@ -1,6 +1,7 @@
 # Discord imports allow for easy access to connection to discord and making commands.
 import discord
 from discord.ext import commands
+from embedder import Embedder
 
 import re
 import itertools
@@ -29,38 +30,6 @@ class Mathy(commands.Cog):
         self.bot = bot
         self.ecolor = 0x2ecc71
 
-    # Embedding for message ui looking better, automatically set to sending to origin channel
-    async def embed(self, ctx, message="", sendto=1, user=None, bot_level=""):
-        # Take cog color (self.ecolor) as color, and command name as title
-        if bot_level == "":
-            emb = discord.Embed(color=self.ecolor,
-                                title=str(ctx.command).capitalize() + " Results:")
-        else:
-            emb = discord.Embed(color=self.ecolor,
-                                title=bot_level)
-        # Sets the user that called command as author by taking their name and pfp
-        emb.set_author(name=ctx.author.display_name,
-                       icon_url=ctx.author.avatar)
-        # Set message of embed
-        emb.description = message
-        # Send to origin channel
-        if sendto == 1:
-            await ctx.send(embed=emb)
-        # Send to user direct messages
-        elif sendto == 2:
-            await ctx.author.send(embed=emb)
-        # Send to origin channel alternate
-        elif sendto == 3:
-            await ctx.channel.send(embed=emb)
-        # Send to specified user
-        elif sendto == 4 and not user is None:
-            try:
-                await user.send(embed=emb)
-            except:
-                # If no such user, send back command fail
-                emb.description = "An error occurred."
-                await ctx.author.send(embed=emb)
-
     # Simplecalculations command, add, subtract, multiply, divide, see description for full explanation
     @bot.command(
         pass_context=True,
@@ -76,7 +45,7 @@ class Mathy(commands.Cog):
     async def simplecalculations(self, ctx, *args):
         # check if any arguments to calculate
         if len(args) == 0:
-            return await self.embed(ctx, "Command Failed: Nothing inputted to calculate.")
+            return await Embedder.embed(ctx, "Command Failed: Nothing inputted to calculate.")
         # Initializing variables
         numlist = []
         count = 0
@@ -94,8 +63,8 @@ class Mathy(commands.Cog):
                     operation = number
                 # Non-valid
                 else:
-                    return await self.embed(ctx, "Command Failed: One or more operation arguments are "
-                                                 "formatted wrong, argument " + str(count + 1) + ".")
+                    return await Embedder.embed(ctx, "Command Failed: One or more operation arguments are "
+                                                     "formatted wrong, argument " + str(count + 1) + ".")
             # Numbers
             else:
                 try:
@@ -116,12 +85,12 @@ class Mathy(commands.Cog):
                             num *= holder
                 # if number position is not floatable
                 except ValueError:
-                    return await self.embed(ctx, "Command Failed: One or more arguments are formatted wrong,"
-                                                 " argument " + str(count + 1) + ".")
+                    return await Embedder.embed(ctx, "Command Failed: One or more arguments are formatted wrong,"
+                                                     " argument " + str(count + 1) + ".")
             # Counting for next argument
             count += 1
         # Send result
-        await self.embed(ctx, str(num))
+        await Embedder.embed(ctx, str(num))
 
     # Command add, simply finds the sum of all argument numbers together. Rounds to nearest int.
     @bot.command(
@@ -135,7 +104,7 @@ class Mathy(commands.Cog):
     async def add(self, ctx, *args):
         # Check for if there were any arguments
         if len(args) == 0:
-            return await self.embed(ctx, "Command Failed: You didn't input anything to add.")
+            return await Embedder.embed(ctx, "Command Failed: You didn't input anything to add.")
         # Set base number and add others to it
         num = 0.0
         for number in args:
@@ -144,10 +113,10 @@ class Mathy(commands.Cog):
                 print(num)
             # If an argument cannot be converted to a number send back that the command failed to execute
             except ValueError:
-                return await self.embed(ctx, "Command Failed: There is something that is not a number in here.")
+                return await Embedder.embed(ctx, "Command Failed: There is something that is not a number in here.")
         # Round number to nearest int and make int, then send result back
         num = int(round(num))
-        await self.embed(ctx, str(num))
+        await Embedder.embed(ctx, str(num))
 
     # Command subtract, simply finds the difference of all argument numbers together, given the first number as the
     # initial value. Rounds to nearest int.
@@ -163,23 +132,23 @@ class Mathy(commands.Cog):
     async def subtract(self, ctx, num=None, *args):
         # Check for if there are any arguments
         if num == None:
-            return await self.embed(ctx, "Command Failed: You didn't input anything to subtract.")
+            return await Embedder.embed(ctx, "Command Failed: You didn't input anything to subtract.")
         try:
             # Convert base number to float
             num = float(num)
         # If not convertable, then send back command failed
         except ValueError:
-            return await self.embed(ctx, "Command Failed: Your first argument is not a number.")
+            return await Embedder.embed(ctx, "Command Failed: Your first argument is not a number.")
         # From base number subtract all other arguments
         for number in args:
             try:
                 num -= float(number)
             # If an argument is not convertable, send back command failed
             except ValueError:
-                return await self.embed(ctx, "TCommand Failed: here is something that is not a number in here.")
+                return await Embedder.embed(ctx, "TCommand Failed: here is something that is not a number in here.")
         # Round to nearest int, convert to int and send back result
         num = int(round(num))
-        await self.embed(ctx, str(num))
+        await Embedder.embed(ctx, str(num))
 
     # Command multiply, finds the product of all argumant numbers togethers. Rounds to nearest int.
     @bot.command(
@@ -193,7 +162,7 @@ class Mathy(commands.Cog):
     async def multiply(self, ctx, *args):
         # Check for if any arguments
         if len(args) == 0:
-            return await self.embed(ctx, "Command Failed: You didn't input anything to multiply.")
+            return await Embedder.embed(ctx, "Command Failed: You didn't input anything to multiply.")
         # Set base number
         num = 1.0
         # multiply base number by each number
@@ -202,10 +171,10 @@ class Mathy(commands.Cog):
                 num *= float(number)
             # If not convertible send back command failed
             except ValueError:
-                return await self.embed(ctx, "Command Failed: There is something that is not a number in here.")
+                return await Embedder.embed(ctx, "Command Failed: There is something that is not a number in here.")
         # Round to nearest int, convert to int and send result back
         num = int(round(num))
-        await self.embed(ctx, str(num))
+        await Embedder.embed(ctx, str(num))
 
     @bot.command(
         pass_context=True,
@@ -219,23 +188,23 @@ class Mathy(commands.Cog):
     async def divide(self, ctx, num=None, *args):
         # Check if any arguments
         if num is None:
-            return await self.embed(ctx, "Command Failed: You didn't input anything to divide.")
+            return await Embedder.embed(ctx, "Command Failed: You didn't input anything to divide.")
         try:
             # Convert base number to float
             num = float(num)
         # If inconvertable send back command fail
         except ValueError:
-            return await self.embed(ctx, "Command Failed: First argument is not a number.")
+            return await Embedder.embed(ctx, "Command Failed: First argument is not a number.")
         # Divide base number by each argument
         for number in args:
             try:
                 num = num / float(number)
             # if argument inconvertable send back command fail
             except ValueError:
-                return await self.embed(ctx, "Command Failed: There is something that is not a number in here.")
+                return await Embedder.embed(ctx, "Command Failed: There is something that is not a number in here.")
         # Round to nearest int, convert to int and send back
         num = int(round(num))
-        await self.embed(ctx, str(num))
+        await Embedder.embed(ctx, str(num))
 
     # find rational roots for a polynomial with integral coefficients
     @bot.command(
@@ -389,7 +358,7 @@ class Mathy(commands.Cog):
                     poly_rem += ' + ' + holder
                 counter += 1
             format_root = format_root + poly_rem
-        return await self.embed(ctx, format_root)
+        return await Embedder.embed(ctx, format_root)
 
 
 async def setup(bot):

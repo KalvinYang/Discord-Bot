@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 import random
 import asyncio
+from embedder import Embedder
 
 # Intents allow for the usage of information within their classes.
 Intents = discord.Intents.default().all()
@@ -28,38 +29,6 @@ class Public(commands.Cog):
         self.bot = bot
         self.ecolor = 0x3498db
 
-    # Embedding for message ui looking better, automatically set to sending to origin channel
-    async def embed(self, ctx, message="", sendto=1, user=None, bot_level=""):
-        # Take cog color (self.ecolor) as color, and command name as title
-        if bot_level == "":
-            emb = discord.Embed(color=self.ecolor,
-                                title=str(ctx.command).capitalize() + " Results:")
-        else:
-            emb = discord.Embed(color=self.ecolor,
-                                title=bot_level)
-        # Sets the user that called command as author by taking their name and pfp
-        emb.set_author(name=ctx.author.display_name,
-                       icon_url=ctx.author.avatar)
-        # Set message of embed
-        emb.description = message
-        # Send to origin channel
-        if sendto == 1:
-            await ctx.send(embed=emb)
-        # Send to user direct messages
-        elif sendto == 2:
-            await ctx.author.send(embed=emb)
-        # Send to origin channel alternate
-        elif sendto == 3:
-            await ctx.channel.send(embed=emb)
-        # Send to specified user
-        elif sendto == 4 and not user is None:
-            try:
-                await user.send(embed=emb)
-            except:
-                # If no such user, send back command fail
-                emb.description = "An error occurred."
-                await ctx.author.send(embed=emb)
-
     # Command talk, by calling command and an name into the 'user' field it searches the server to find if such a
     # person exists, if they do it sends a randomized message to them. Although basic, it is a legacy command from
     # the original project. Perhaps it could be expanded on. Edit: Now only sends randomized messages when 'msg'
@@ -79,22 +48,23 @@ class Public(commands.Cog):
         all_members = ctx.guild.members
         print('user: ' + user)
         if user == ctx.author.name or user == str(ctx.author) or user == ctx.author.mention:
-            return await self.embed(ctx, "Why are you sending a message to yourself? Anyways, here's your message.\n\n"
-                                    + msg, 2)
+            return await Embedder.embed(ctx,
+                                        "Why are you sending a message to yourself? Anyways, here's your message.\n\n"
+                                        + msg, 2)
         for member in all_members:
             print('member name: ' + member.name)
             if member.name == user or str(member) == user or member.mention == user:
                 if member.bot:
-                    return await self.embed(ctx, "This is a bot, cannot send message them.")
+                    return await Embedder.embed(ctx, "This is a bot, cannot send message them.")
                 if msg == "":
                     new_message = random.choice(messages)
                 else:
                     new_message = msg
-                await self.embed(ctx, ctx.author.name + ' to ' + member.name +
-                                 ':\n\n' + new_message, 4, member)
-                return await self.embed(ctx, 'You to ' + member.name + ':\n\n' +
-                                        new_message, 2)
-        return await self.embed(ctx, "This person does not exist in this server.")
+                await Embedder.embed(ctx, ctx.author.name + ' to ' + member.name +
+                                     ':\n\n' + new_message, 4, member)
+                return await Embedder.embed(ctx, 'You to ' + member.name + ':\n\n' +
+                                            new_message, 2)
+        return await Embedder.embed(ctx, "This person does not exist in this server.")
 
     #
 
@@ -107,7 +77,7 @@ class Public(commands.Cog):
         "messages to the channel the initial message came from.\n\n**Usage:**\n&sayrandnum {number}\n&sayrandnum "
     )
     async def sayrandnum(self, ctx, num=10):
-        await self.embed(ctx, "Count to:")
+        await Embedder.embed(ctx, "Count to:")
         num = await self.randomnumber(ctx, num)
         await self.saynumber(ctx, num)
 
@@ -123,7 +93,7 @@ class Public(commands.Cog):
     )
     async def randomnumber(self, ctx, num=10):
         somenumber = random.randrange(num)
-        await self.embed(ctx, 'Number: {0}'.format(somenumber))
+        await Embedder.embed(ctx, 'Number: {0}'.format(somenumber))
         return somenumber
 
     # Command saynum, sends separate messages counting from 1 to indicated number, so long as it is within 50 to
@@ -138,12 +108,12 @@ class Public(commands.Cog):
     )
     async def saynumber(self, ctx, num=0):
         if num <= 0:
-            return await self.embed(ctx, 'Cannot count to that number.', 3)
+            return await Embedder.embed(ctx, 'Cannot count to that number.', 3)
         elif num > 50:
-            return await self.embed(ctx, 'Max count limit is 50.', 3)
+            return await Embedder.embed(ctx, 'Max count limit is 50.', 3)
         for number in range(num):
             await asyncio.sleep(0.75)
-            await self.embed(ctx, '{0}'.format(number + 1), 3)
+            await Embedder.embed(ctx, '{0}'.format(number + 1), 3)
 
     # Command guessnum, guess a number between 0 and 10, randomizes number and tells you if you got it right. Auto
     # allows for auto guessing until the number is achieved and returns the amount of guesses needed.
@@ -159,21 +129,21 @@ class Public(commands.Cog):
     )
     async def guessnumber(self, ctx, num=-1, auto='no'):
         if num < 0 or num > 10:
-            return await self.embed(ctx, 'Not a valid guess.', 3)
+            return await Embedder.embed(ctx, 'Not a valid guess.', 3)
         if auto == 'yes' or auto == 'y' or auto == 'Y' or auto == 'YES' or auto == 'Yes':
             counter = 0
             while True:
                 somenumber = random.randrange(11)
                 counter += 1
                 if somenumber == num:
-                    return await self.embed(ctx, 'You took {0} guess(es) to get it right.'.format(counter))
+                    return await Embedder.embed(ctx, 'You took {0} guess(es) to get it right.'.format(counter))
         somenumber = random.randrange(11)
         print('guess: {0}'.format(num))
         print('value: {0}'.format(somenumber))
         if somenumber == num:
-            await self.embed(ctx, 'You guessed right!', 3)
+            await Embedder.embed(ctx, 'You guessed right!', 3)
         else:
-            await self.embed(ctx, 'WRONG.', 3)
+            await Embedder.embed(ctx, 'WRONG.', 3)
 
 
 async def setup(bot):
